@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync, rmSync, renameSync } from 'node:fs';
 import { join } from 'node:path';
 import { inspectRepository } from '../../src/inspect/index.mjs';
-import { copyFixture, FIXED_NOW } from '../helpers.mjs';
+import { copyFixture, copyFixtureAsGitRepo, FIXED_NOW } from '../helpers.mjs';
 
 /**
  * Regression battery for the freshness defect found on 28 August 2026: the
@@ -99,5 +99,43 @@ test('the fingerprint records one digest per evidence document', () => {
     for (const entry of inventory.evidenceFileDigests) {
       assert.match(entry.hash, /^(sha256:[0-9a-f]{64}|absent|unreadable)$/);
     }
+  });
+});
+
+/**
+ * Regression battery for the subdirectory defect found on 28 August 2026:
+ * git walks up until it finds a repository, so analysing a subdirectory
+ * silently adopted the enclosing repository's commit and clean-tree state. The
+ * behaviour is right for a monorepo package and misleading otherwise, so the
+ * pack now says which of the two it is.
+ */
+test('analysing a repository root records that the commit describes it', () => {
+  const repository = copyFixtureAsGitRepo('well-evidenced');
+  try {
+    const inventory = inspectRepository(repository.path, { nowOverride: FIXED_NOW });
+    assert.equal(inventory.git.analysedPathIsRepositoryRoot, true);
+    assert.ok(!inventory.notes.some((note) => note.includes('subdirectory of the git repository')));
+  } finally {
+    repository.cleanup();
+  }
+});
+
+test('analysing a subdirectory says the commit describes the whole repository', () => {
+  const repository = copyFixtureAsGitRepo('well-evidenced');
+  try {
+    const inventory = inspectRepository(join(repository.path, 'docs'), { nowOverride: FIXED_NOW });
+    assert.equal(inventory.git.analysedPathIsRepositoryRoot, false);
+    assert.ok(inventory.notes.some((note) => note.includes('subdirectory of the git repository')),
+      'a commit borrowed from an enclosing repository must be flagged, not presented as the subject');
+  } finally {
+    repository.cleanup();
+  }
+});
+
+test('outside any repository the flag is null rather than a false claim', () => {
+  withFixture('minimal-unprepared', (root) => {
+    const inventory = inspectRepository(root, { nowOverride: FIXED_NOW });
+    assert.equal(inventory.git.available, false);
+    assert.equal(inventory.git.analysedPathIsRepositoryRoot, null);
   });
 });

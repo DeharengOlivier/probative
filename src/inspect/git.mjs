@@ -1,4 +1,6 @@
 import { execFileSync } from 'node:child_process';
+import { realpathSync } from 'node:fs';
+import { basename } from 'node:path';
 import { redact } from '../util/redact.mjs';
 
 /**
@@ -36,8 +38,20 @@ export function inspectGit(root) {
     return {
       available: false, commit: null, shortCommit: null, branch: null, dirty: null,
       tagsAtHead: [], describedVersion: null, committedAt: null, remoteHost: null,
-      trackedFileCount: null, notes,
+      trackedFileCount: null, analysedPathIsRepositoryRoot: null, notes,
     };
+  }
+
+  // git walks up until it finds a repository. Analysing a subdirectory of a
+  // monorepo is legitimate and the enclosing commit is the right one, but the
+  // pack has to say so: a commit that belongs to a larger repository describes
+  // more than the analysed path.
+  const repositoryRoot = git(root, ['rev-parse', '--show-toplevel']);
+  const analysedPathIsRepositoryRoot = repositoryRoot === null
+    ? null
+    : realpathSync(repositoryRoot) === realpathSync(root);
+  if (analysedPathIsRepositoryRoot === false) {
+    notes.push(`the analysed path is a subdirectory of the git repository rooted at ${basename(repositoryRoot)}; the commit and working tree state describe that whole repository, not this directory alone`);
   }
 
   const commit = git(root, ['rev-parse', 'HEAD']);
@@ -61,6 +75,7 @@ export function inspectGit(root) {
 
   return {
     available: true,
+    analysedPathIsRepositoryRoot,
     commit,
     shortCommit: commit ? commit.slice(0, 12) : null,
     branch: git(root, ['rev-parse', '--abbrev-ref', 'HEAD']),

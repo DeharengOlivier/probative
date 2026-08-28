@@ -31,10 +31,23 @@ First release. Node.js products with an npm lockfile.
 - Pack integrity and freshness verification, bound to the commit and to a
   content digest of every evidence-bearing document.
 - Redaction of secrets on every string written to disk.
-- 106 tests, including an adversarial fixture asserting that no repository
+- 123 tests, including an adversarial fixture asserting that no repository
   script is executed and that no canary secret reaches the pack.
 - `SKILL.md`, a portable agent skill with no dependency on a proprietary agent
   API.
+
+### Fixed
+
+- The state fingerprint covered document paths only, so a security policy
+  stripped of its content still read as the same state and `verify --against`
+  called a stale pack fresh. It now covers the content of every
+  evidence-bearing document.
+- Article 71, being the last article, absorbed the Official Journal footnote
+  apparatus into its final paragraph, so `cite Art.71.2` returned thirty-eight
+  unrelated legal acts. Article blocks now end at the signature.
+- Analysing a subdirectory silently adopted the enclosing repository's commit.
+  The pack now records whether the analysed path is the repository root, and
+  says so when it is not.
 
 ### Security
 

@@ -2,9 +2,18 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { runPipeline } from '../../src/pipeline.mjs';
 import { STATUS } from '../../src/rules/status.mjs';
-import { fixturePath, FIXED_NOW } from '../helpers.mjs';
+import { copyFixture, FIXED_NOW } from '../helpers.mjs';
 
-const run = (fixture) => runPipeline(fixturePath(fixture), { nowOverride: FIXED_NOW });
+// Fixtures live inside this project's own git repository, so analysing them in
+// place would pick up its commit. Copying them out keeps each test hermetic.
+const run = (fixture) => {
+  const scratch = copyFixture(fixture);
+  try {
+    return runPipeline(scratch.path, { nowOverride: FIXED_NOW });
+  } finally {
+    scratch.cleanup();
+  }
+};
 const statusOf = (assessment, id) => assessment.controls.find((control) => control.id === id).status;
 
 test('an unprepared repository reports gaps rather than failing', () => {

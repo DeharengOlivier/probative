@@ -9,6 +9,16 @@ import { writeTreeAtomic } from '../../src/util/fs.mjs';
 
 const run = (root) => runPipeline(root, { nowOverride: FIXED_NOW });
 
+/** Analyse a fixture outside this project's git repository, so no commit leaks in. */
+const runDetached = (fixture) => {
+  const scratch = copyFixture(fixture);
+  try {
+    return runPipeline(scratch.path, { nowOverride: FIXED_NOW });
+  } finally {
+    scratch.cleanup();
+  }
+};
+
 test('no canary secret from the hostile repository reaches any pack file', () => {
   const { files } = run(fixturePath('hostile-repository'));
   const everything = Object.entries(files).map(([path, content]) => `\n--- ${path}\n${content}`).join('');
@@ -32,7 +42,7 @@ test('the .env file is never read and never appears in the evidence manifest', (
 });
 
 test('a prompt injection in the repository changes no control status', () => {
-  const { assessment } = run(fixturePath('hostile-repository'));
+  const { assessment } = runDetached('hostile-repository');
   const verified = assessment.controls.filter((control) => control.status === STATUS.VERIFIED);
   // The only thing this repository genuinely evidences is its bill of materials.
   assert.deepEqual(verified.map((control) => control.id), ['CRA-NODE-010']);
