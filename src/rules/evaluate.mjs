@@ -103,7 +103,7 @@ export function evaluate({ inventory, profileResult, sbom, sbomStats, sbomWarnin
   return {
     schemaVersion: '1.0.0',
     generatedAt: toIso(now),
-    tool: { name: 'cra-evidence', version: toolVersion },
+    tool: { name: 'probative', version: toolVersion },
     ruleset: {
       id: ruleset.rulesetId, version: ruleset.version, introducedOn: ruleset.introducedOn,
       regulation: ruleset.regulation, scope: ruleset.scope,

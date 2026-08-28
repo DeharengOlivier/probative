@@ -1,10 +1,10 @@
 {
-  "name": "cra-evidence",
+  "name": "probative",
   "version": "0.1.0",
   "description": "Turn a Node.js repository into a reproducible, source-linked CRA technical evidence pack. Prepares technical evidence; never claims legal compliance.",
   "type": "module",
   "bin": {
-    "cra-evidence": "bin/cra-evidence.mjs"
+    "probative": "bin/probative.mjs"
   },
   "exports": {
     ".": "./src/index.mjs"
@@ -25,7 +25,7 @@
     "test": "node --test \"test/unit/*.test.mjs\" \"test/integration/*.test.mjs\"",
     "test:unit": "node --test \"test/unit/*.test.mjs\"",
     "test:integration": "node --test \"test/integration/*.test.mjs\"",
-    "selfcheck": "node bin/cra-evidence.mjs inspect . --json",
+    "selfcheck": "node bin/probative.mjs inspect . --json",
     "fixtures": "node test/build-fixtures.mjs",
     "docs": "node scripts/generate-coverage-doc.mjs"
   },

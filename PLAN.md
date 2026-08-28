@@ -143,7 +143,7 @@ Agent-specific adapters may be added later without changing the core.
 ## 8. Target repository structure
 
 ```text
-cra-evidence-skill/
+probative/
 ├── SKILL.md
 ├── README.md
 ├── LICENSE
@@ -151,7 +151,7 @@ cra-evidence-skill/
 ├── package.json
 ├── package-lock.json
 ├── bin/
-│   └── cra-evidence.mjs
+│   └── probative.mjs
 ├── scripts/
 │   ├── inspect-repository.mjs
 │   ├── collect-evidence.mjs
@@ -426,12 +426,12 @@ where the document is downloaded, its digest.
 The exact interface may evolve, but the workflow must stay simple:
 
 ```text
-cra-evidence inspect [path]
-cra-evidence collect [path] --output cra-evidence/
-cra-evidence evaluate cra-evidence/evidence-manifest.json
-cra-evidence render cra-evidence/assessment.json
-cra-evidence run [path] --output cra-evidence/
-cra-evidence verify-pack cra-evidence/
+probative inspect [path]
+probative collect [path] --output cra-evidence/
+probative evaluate cra-evidence/evidence-manifest.json
+probative render cra-evidence/assessment.json
+probative run [path] --output cra-evidence/
+probative verify-pack cra-evidence/
 ```
 
 Principles:

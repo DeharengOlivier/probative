@@ -72,7 +72,7 @@ test('profile init writes a template naming the fields to answer', () => {
     const { code, out } = invoke(['profile', 'init', scratch.path]);
     assert.equal(code, EXIT.OK);
     assert.match(out, /product\.commercialName/);
-    const written = JSON.parse(readFileSync(join(scratch.path, 'cra-evidence.profile.json'), 'utf8'));
+    const written = JSON.parse(readFileSync(join(scratch.path, 'probative.profile.json'), 'utf8'));
     assert.equal(written.schemaVersion, '1.0.0');
     assert.equal(written.regulatoryPosition.role, 'undetermined');
     assert.equal(invoke(['profile', 'init', scratch.path]).code, EXIT.USAGE, 'an existing profile is not replaced without --force');

@@ -1,11 +1,14 @@
 ---
-name: cra-evidence
+name: probative
 description: Use when a team needs to prepare Cyber Resilience Act technical evidence for a Node.js product they sell - producing a reproducible, source-linked evidence pack (SBOM, vulnerability handling, support period, Annex II user information, Article 14 reporting readiness) from a repository. Also use when asked about CRA technical documentation, Annex VII content, SBOM obligations under Annex I Part II, or the support period rules in Article 13.
 ---
 
-# CRA evidence pack
+# probative
 
 Prepare technical evidence for Regulation (EU) 2024/2847 from a Node.js repository.
+
+In law, evidence is probative when it tends to prove a fact. It is never the
+verdict. The name is the boundary.
 
 ## The boundary, which never moves
 
@@ -29,12 +32,12 @@ All commands are read-only over the analysed repository. None of them executes a
 project script, and none of them opens a network connection.
 
 ```sh
-npx cra-evidence inspect .                       # read-only inventory, nothing written
-npx cra-evidence profile init .                  # create the declarations file
-npx cra-evidence run . --out cra-evidence/       # produce the evidence pack
-npx cra-evidence verify cra-evidence/ --against . # integrity and freshness
-npx cra-evidence cite AnnexI.PartII.5            # verbatim text of a provision
-npx cra-evidence rules                           # the controls and what they cite
+npx probative inspect .                       # read-only inventory, nothing written
+npx probative profile init .                  # create the declarations file
+npx probative run . --out cra-evidence/       # produce the evidence pack
+npx probative verify cra-evidence/ --against . # integrity and freshness
+npx probative cite AnnexI.PartII.5            # verbatim text of a provision
+npx probative rules                           # the controls and what they cite
 ```
 
 Add `--json` for machine-readable output, and `--now <iso>` for byte-identical
@@ -45,7 +48,7 @@ reruns.
 1. **State the boundary** to the user before doing anything, in one or two
    sentences. Then say what you are about to read.
 2. **Run `inspect`.** It writes nothing. Report what exists.
-3. **Run `profile init`** if `cra-evidence.profile.json` is absent, then conduct
+3. **Run `profile init`** if `probative.profile.json` is absent, then conduct
    the interview below. Write the answers into the file; never invent one.
    A field you cannot get an answer for stays `null`, which reads as `missing`
    in the pack. That is the correct outcome, and it is better than a guess.

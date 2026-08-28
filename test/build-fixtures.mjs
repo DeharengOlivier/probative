@@ -195,7 +195,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: npm publish --provenance
 `);
-write('well-evidenced', 'cra-evidence.profile.json', {
+write('well-evidenced', 'probative.profile.json', {
   schemaVersion: '1.0.0',
   product: {
     commercialName: 'VaultKeeper Server', identifier: 'VK-SRV',

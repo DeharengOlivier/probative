@@ -53,7 +53,7 @@ every other obligation depends on those answers.
 | **11 September 2026** | **Article 14: reporting of actively exploited vulnerabilities and severe incidents** |
 | 11 December 2027 | The Regulation in full |
 
-Source: Article 71(2). Run `cra-evidence cite Art.71.2` to read it.
+Source: Article 71(2). Run `probative cite Art.71.2` to read it.
 
 ## Currency of the ruleset
 

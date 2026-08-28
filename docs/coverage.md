@@ -110,6 +110,6 @@ The structure of the evidence pack follows this Annex, because it is the structu
 
 - 24 controls across 9 families.
 - 57 distinct provisions cited.
-- 282 provisions indexed and citable offline with `cra-evidence cite`.
+- 282 provisions indexed and citable offline with `probative cite`.
 - 8 of 8 Annex I, Part II points covered.
 - 8 of 8 Annex VII points covered.

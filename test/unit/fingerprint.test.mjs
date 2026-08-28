@@ -56,7 +56,7 @@ test('changing a workflow changes the fingerprint', () => {
 test('changing the product profile changes the fingerprint', () => {
   withFixture('well-evidenced', (root) => {
     const before = fingerprint(root);
-    const profilePath = join(root, 'cra-evidence.profile.json');
+    const profilePath = join(root, 'probative.profile.json');
     const profile = JSON.parse(readFileSync(profilePath, 'utf8'));
     profile.supportPeriod.endDate = '2029-01';
     writeFileSync(profilePath, JSON.stringify(profile, null, 2));
@@ -95,7 +95,7 @@ test('the fingerprint records one digest per evidence document', () => {
     assert.ok(paths.includes('SECURITY.md'));
     assert.ok(paths.includes('package-lock.json'));
     assert.ok(paths.includes('.github/workflows/release.yml'));
-    assert.ok(paths.includes('cra-evidence.profile.json'));
+    assert.ok(paths.includes('probative.profile.json'));
     for (const entry of inventory.evidenceFileDigests) {
       assert.match(entry.hash, /^(sha256:[0-9a-f]{64}|absent|unreadable)$/);
     }

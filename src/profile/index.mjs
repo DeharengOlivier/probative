@@ -6,7 +6,7 @@ import { validate } from '../util/schema.mjs';
 import { stringify } from '../util/json.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
-export const PROFILE_FILENAME = 'cra-evidence.profile.json';
+export const PROFILE_FILENAME = 'probative.profile.json';
 export const PROFILE_SCHEMA = JSON.parse(readFileSync(join(here, '..', '..', 'schemas', 'product-profile.schema.json'), 'utf8'));
 
 /**

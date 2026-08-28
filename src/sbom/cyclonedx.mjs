@@ -111,8 +111,8 @@ export function buildCycloneDx({ inventory, lockPackages, now, toolVersion, incl
     metadata: {
       timestamp: toIso(now),
       tools: {
-        components: [{ type: 'application', name: 'cra-evidence', version: toolVersion,
-          externalReferences: [{ type: 'website', url: 'https://github.com/DeharengOlivier/cra-evidence' }] }],
+        components: [{ type: 'application', name: 'probative', version: toolVersion,
+          externalReferences: [{ type: 'website', url: 'https://github.com/DeharengOlivier/probative' }] }],
       },
       component: {
         type: 'application',

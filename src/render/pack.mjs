@@ -40,10 +40,10 @@ function renderReadme({ assessment, manifest, sourceRegister }) {
     ]),
     heading(2, 'How to reproduce it'),
     paragraph('From the analysed repository, at the same commit:'),
-    paragraph('```sh\nnpx cra-evidence run . --out cra-evidence/\n```'),
+    paragraph('```sh\nnpx probative run . --out cra-evidence/\n```'),
     paragraph(`The run reads the repository, executes no project script and opens no network connection. Two runs at the same commit with the same product profile produce the same content, except for the \`generatedAt\` timestamps. Pin them with \`--now\` or \`SOURCE_DATE_EPOCH\` to obtain byte-identical output.`),
     heading(2, 'How to check it has not drifted'),
-    paragraph('```sh\nnpx cra-evidence verify cra-evidence/\n```'),
+    paragraph('```sh\nnpx probative verify cra-evidence/\n```'),
     paragraph(`Verification recomputes every digest in \`SHA256SUMS\`, then compares the pack's commit and state fingerprint with the repository as it stands now. Evidence collected at another commit is reported as stale.`),
     heading(2, 'Sources'),
     bullets(sourceRegister.sources.map((source) => `${source.title} - ${source.url} (accessed ${source.accessedOn})`)),
@@ -81,7 +81,7 @@ function renderExecutiveSummary({ assessment }) {
       ? (assessment.profile.valid
         ? 'A product profile was found and is valid against its schema.'
         : `A product profile was found but has ${assessment.profile.schemaErrors.length} schema error(s); the declarations it carries are still reported, marked as declared.`)
-      : 'No product profile was found. Every control that depends on a manufacturer declaration is reported as missing rather than failed. Run `cra-evidence profile init` to create one.'),
+      : 'No product profile was found. Every control that depends on a manufacturer declaration is reported as missing rather than failed. Run `probative profile init` to create one.'),
   );
 }
 
@@ -209,7 +209,7 @@ function renderProductProfile({ assessment, profileResult, inventory }) {
   ];
 
   if (!profileResult.present) {
-    parts.push(paragraph('No product profile file was found. Run `cra-evidence profile init` to create one, then fill it in.'));
+    parts.push(paragraph('No product profile file was found. Run `probative profile init` to create one, then fill it in.'));
     return section(...parts);
   }
   if (profileResult.errors.length > 0) {
@@ -273,7 +273,7 @@ function renderLimitations({ assessment, ruleset, inventory }) {
     heading(2, 'Freshness'),
     paragraph(assessment.subject.worktreeClean === false
       ? 'The working tree had uncommitted changes when this pack was produced. The evidence describes the working tree, not a commit that anyone else can retrieve.'
-      : 'The evidence is bound to the commit named in the pack README. Regenerate the pack whenever the product changes; `cra-evidence verify` reports a pack collected at another commit as stale.'),
+      : 'The evidence is bound to the commit named in the pack README. Regenerate the pack whenever the product changes; `probative verify` reports a pack collected at another commit as stale.'),
     heading(2, 'Applicability dates'),
     bullets([
       'Article 14, reporting of actively exploited vulnerabilities and severe incidents: applies from 11 September 2026.',

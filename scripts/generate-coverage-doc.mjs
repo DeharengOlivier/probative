@@ -86,7 +86,7 @@ ${ruleset.controls.map((control) => `| ${control.id} | ${control.priority} | ${c
 
 - ${ruleset.controls.length} controls across ${ruleset.families.length} families.
 - ${covered.size} distinct provisions cited.
-- ${reference.loci ? Object.keys(reference.loci).length : 0} provisions indexed and citable offline with \`cra-evidence cite\`.
+- ${reference.loci ? Object.keys(reference.loci).length : 0} provisions indexed and citable offline with \`probative cite\`.
 - ${partII.filter((locus) => controlsCiting(locus).length > 0).length} of ${partII.length} Annex I, Part II points covered.
 - ${annexVII.filter((locus) => controlsCiting(locus).length > 0).length} of ${annexVII.length} Annex VII points covered.
 `;

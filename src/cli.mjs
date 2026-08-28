@@ -17,21 +17,21 @@ export const EXIT = Object.freeze({
   P0_GAPS: 4,
 });
 
-const USAGE = `cra-evidence ${TOOL_VERSION} - prepare CRA technical evidence from a Node.js repository
+const USAGE = `probative ${TOOL_VERSION} - prepare CRA technical evidence from a Node.js repository
 
   This tool prepares technical evidence and declarations. It does not assess
   conformity, does not issue an EU declaration of conformity, and states no
   legal conclusion about compliance with Regulation (EU) 2024/2847.
 
 Usage
-  cra-evidence run [path] --out <dir>     Produce the full evidence pack
-  cra-evidence inspect [path]             Read-only inventory of the repository
-  cra-evidence sbom [path] --out <file>   CycloneDX bill of materials only
-  cra-evidence verify <pack> [--against <repo>]
+  probative run [path] --out <dir>     Produce the full evidence pack
+  probative inspect [path]             Read-only inventory of the repository
+  probative sbom [path] --out <file>   CycloneDX bill of materials only
+  probative verify <pack> [--against <repo>]
                                           Check pack integrity and freshness
-  cra-evidence profile init [path]        Create a blank product profile
-  cra-evidence cite <locus>               Print the official text of a provision
-  cra-evidence rules                      List the controls of the ruleset
+  probative profile init [path]        Create a blank product profile
+  probative cite <locus>               Print the official text of a provision
+  probative rules                      List the controls of the ruleset
 
 Options
   --out <path>        Destination directory or file
@@ -84,7 +84,7 @@ function resolveRoot(candidate) {
 const COMMANDS = {
   run(options, out) {
     const root = resolveRoot(options.positional[1]);
-    const destination = options.out ?? join(root, 'cra-evidence');
+    const destination = options.out ?? join(root, 'probative');
     const { assessment, files } = runPipeline(root, options);
     writeTreeAtomic(destination, files, { overwrite: options.force });
 
@@ -233,7 +233,7 @@ export function main(argv, { out = process.stdout, err = process.stderr } = {}) 
   try {
     options = parseArguments(argv);
   } catch (error) {
-    err.write(`cra-evidence: ${error.message}\n\n${USAGE}`);
+    err.write(`probative: ${error.message}\n\n${USAGE}`);
     return EXIT.USAGE;
   }
   if (options.version) {
@@ -247,17 +247,17 @@ export function main(argv, { out = process.stdout, err = process.stderr } = {}) 
   }
   const implementation = COMMANDS[command];
   if (!implementation) {
-    err.write(`cra-evidence: unknown command '${command}'\n\n${USAGE}`);
+    err.write(`probative: unknown command '${command}'\n\n${USAGE}`);
     return EXIT.USAGE;
   }
   try {
     return implementation(options, out);
   } catch (error) {
     if (error instanceof UsageError) {
-      err.write(`cra-evidence: ${error.message}\n`);
+      err.write(`probative: ${error.message}\n`);
       return EXIT.USAGE;
     }
-    err.write(`cra-evidence: ${error.message}\n`);
+    err.write(`probative: ${error.message}\n`);
     return EXIT.RUNTIME;
   }
 }

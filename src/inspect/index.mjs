@@ -53,7 +53,7 @@ export function inspectRepository(root, options = {}) {
     ci.dependencyUpdates.dependabot.path, ci.dependencyUpdates.renovate.path,
     ...ci.workflows.map((workflow) => workflow.path),
     ...docs.existingSbom.paths,
-    options.filename ?? 'cra-evidence.profile.json',
+    options.filename ?? 'probative.profile.json',
   ].filter(Boolean);
 
   const contentDigests = [...new Set(evidencePaths)].sort().map((path) => {

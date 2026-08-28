@@ -1,7 +1,10 @@
-# cra-evidence
+# probative
 
 Turn a Node.js repository into a reproducible, source-linked **Cyber Resilience
 Act technical evidence pack**.
+
+*In law, evidence is probative when it tends to prove a fact. It is never the
+verdict.* That is what this tool produces, and where it stops.
 
 > **This tool prepares technical evidence. It does not assess conformity, does
 > not issue an EU declaration of conformity, does not affix a CE marking, and
@@ -10,11 +13,11 @@ Act technical evidence pack**.
 > Regulation applies and in which role, stay with a competent reviewer.
 
 ```sh
-npx cra-evidence run . --out cra-evidence/
+npx probative run . --out cra-evidence/
 ```
 
 ```
-Evidence pack written to ./cra-evidence
+Evidence pack written to ./probative
 
   Product        vaultkeeper 4.2.0
   Commit         a1b2c3d4e5f6...
@@ -61,8 +64,8 @@ a repository simply cannot establish.
 Node 20.11 or later. **No runtime dependencies.**
 
 ```sh
-npx cra-evidence --help          # no install
-npm install --save-dev cra-evidence
+npx probative --help          # no install
+npm install --save-dev probative
 ```
 
 The absence of a dependency tree is deliberate: a tool whose subject is supply
@@ -91,7 +94,7 @@ gap is open (with `--fail-on-p0`).
 **The repository** supplies everything observable: the lockfile, `SECURITY.md`,
 the changelog, workflows, `security.txt`, dependency update configuration.
 
-**`cra-evidence.profile.json`** supplies what no repository can show: the
+**`probative.profile.json`** supplies what no repository can show: the
 commercial name, the manufacturer's legal identity, the regulatory role, the
 support period and its rationale, the Article 14 procedure. Every field names
 the provision that makes it relevant. Six fields must be answered before it
@@ -127,16 +130,16 @@ Two runs at the same commit with the same profile produce the same content. Pin
 the clock for byte-identical output:
 
 ```sh
-cra-evidence run . --out cra-evidence/ --now 2026-08-28T12:00:00Z
-SOURCE_DATE_EPOCH=1787918400 cra-evidence run . --out cra-evidence/
+probative run . --out cra-evidence/ --now 2026-08-28T12:00:00Z
+SOURCE_DATE_EPOCH=1787918400 probative run . --out cra-evidence/
 ```
 
 ## In continuous integration
 
 ```yaml
-- run: npx cra-evidence run . --out cra-evidence/ --force --fail-on-p0
+- run: npx probative run . --out cra-evidence/ --force --fail-on-p0
 - uses: actions/upload-artifact@v4
-  with: { name: cra-evidence, path: cra-evidence/ }
+  with: { name: probative, path: cra-evidence/ }
 ```
 
 Article 31(2) requires the technical documentation to be kept updated at least
@@ -158,8 +161,8 @@ from the EU Publications Office, with its SHA-256 in `reference/SHA256SUMS`.
 and can be checked against the source:
 
 ```sh
-cra-evidence cite AnnexI.PartII.1
-cra-evidence cite Art.13.8
+probative cite AnnexI.PartII.1
+probative cite Art.13.8
 ```
 
 No rule paraphrases the Regulation. Each one cites a locus, and the pack quotes

@@ -40,8 +40,8 @@ shasum -a 256 -c SHA256SUMS
 | `AnnexVII.<n>[.<letter>]` | `AnnexVII.2.b` | Annex VII, point 2(b) |
 
 ```sh
-cra-evidence cite AnnexI.PartII.1
-cra-evidence cite Art.14.2 --json
+probative cite AnnexI.PartII.1
+probative cite Art.14.2 --json
 ```
 
 ## Authenticity

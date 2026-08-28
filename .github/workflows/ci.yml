@@ -53,9 +53,9 @@ jobs:
         with:
           node-version: '22'
       - name: Produce this repository's own evidence pack
-        run: node bin/cra-evidence.mjs run . --out cra-evidence/ --force
+        run: node bin/probative.mjs run . --out cra-evidence/ --force
       - name: Verify it
-        run: node bin/cra-evidence.mjs verify cra-evidence/ --against .
+        run: node bin/probative.mjs verify cra-evidence/ --against .
       - uses: actions/upload-artifact@v4
         with:
           name: cra-evidence-pack

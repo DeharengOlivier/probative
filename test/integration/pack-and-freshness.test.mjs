@@ -9,7 +9,7 @@ import { copyFixture, copyFixtureAsGitRepo, FIXED_NOW, tempDirectory } from '../
 
 function writePack(repositoryRoot, output) {
   const { files } = runPipeline(repositoryRoot, { nowOverride: FIXED_NOW });
-  const destination = join(output, 'cra-evidence');
+  const destination = join(output, 'probative');
   writeTreeAtomic(destination, files);
   return destination;
 }

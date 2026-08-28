@@ -71,7 +71,7 @@ export function buildEvidenceManifest({ root, inventory, profileResult, sbom, sb
       id: 'generated-sbom',
       type: 'generated-artefact',
       source: 'sbom.cdx.json',
-      command: 'cra-evidence collect (CycloneDX generated from package-lock.json)',
+      command: 'probative collect (CycloneDX generated from package-lock.json)',
       commit, collectedAt,
       hash: hashValue(sbom),
       outcome: `CycloneDX ${sbom.specVersion} with ${sbomStats.componentCount} component(s)`,
