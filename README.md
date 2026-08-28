@@ -96,7 +96,7 @@ the changelog, workflows, `security.txt`, dependency update configuration.
 
 **`probative.profile.json`** supplies what no repository can show: the
 commercial name, the manufacturer's legal identity, the regulatory role, the
-support period and its rationale, the Article 14 procedure. Every field names
+support period and its rationale, the two Article 14 procedures. Every field names
 the provision that makes it relevant. Six fields must be answered before it
 validates; the rest may stay `null`, and a `null` reads as a gap in the pack,
 which is the honest outcome.
