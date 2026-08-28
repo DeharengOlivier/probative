@@ -1,0 +1,567 @@
+{
+  "rulesetId": "cra-node-mvp",
+  "version": "1.0.0",
+  "introducedOn": "2026-08-28",
+  "regulation": {
+    "title": "Regulation (EU) 2024/2847 (Cyber Resilience Act)",
+    "celex": "32024R2847",
+    "eli": "http://data.europa.eu/eli/reg/2024/2847/oj",
+    "referenceFile": "reference/loci.json"
+  },
+  "scope": {
+    "productKind": "Node.js software product distributed to customers",
+    "packageManager": "npm with package-lock.json",
+    "covers": [
+      "Annex I, Part II (vulnerability handling requirements), to the extent a repository can evidence it",
+      "Annex VII (technical documentation) structural completeness",
+      "Annex II (information and instructions to the user) completeness",
+      "Article 13(8), (9) and (19) support period arithmetic",
+      "Article 14 reporting readiness, as a declared procedure"
+    ],
+    "doesNotCover": [
+      "Annex I, Part I: product security properties. These are the output of the cybersecurity risk assessment under Article 13(2) and (3) and cannot be established by reading a repository.",
+      "Whether the Regulation applies at all, and in which role. Articles 3, 13 and 24 questions are recorded as declarations only.",
+      "Conformity assessment under Article 32, CE marking under Article 30 and the EU declaration of conformity under Article 28.",
+      "Any legal conclusion about compliance."
+    ]
+  },
+  "families": [
+    {
+      "id": "product-identification",
+      "title": "Product identification and description",
+      "annexViiSection": "AnnexVII.1"
+    },
+    {
+      "id": "components-and-sbom",
+      "title": "Components and software bill of materials",
+      "annexViiSection": "AnnexVII.2"
+    },
+    {
+      "id": "vulnerability-handling",
+      "title": "Vulnerability handling processes",
+      "annexViiSection": "AnnexVII.2"
+    },
+    {
+      "id": "security-testing",
+      "title": "Security testing and review",
+      "annexViiSection": "AnnexVII.6"
+    },
+    {
+      "id": "support-period",
+      "title": "Support period",
+      "annexViiSection": "AnnexVII.4"
+    },
+    {
+      "id": "user-information",
+      "title": "Information and instructions to the user",
+      "annexViiSection": "AnnexVII.1"
+    },
+    {
+      "id": "risk-and-documentation",
+      "title": "Risk assessment and technical documentation",
+      "annexViiSection": "AnnexVII.3"
+    },
+    {
+      "id": "conformity",
+      "title": "Conformity assessment and declaration",
+      "annexViiSection": "AnnexVII.7"
+    },
+    {
+      "id": "incident-reporting",
+      "title": "Incident and vulnerability reporting readiness",
+      "annexViiSection": null
+    }
+  ],
+  "controls": [
+    {
+      "id": "CRA-NODE-001",
+      "title": "The delivered product version is identifiable",
+      "family": "product-identification",
+      "loci": [
+        "AnnexVII.1.b",
+        "AnnexII.3",
+        "Art.13.15"
+      ],
+      "intent": "Establish which version of which product the rest of the evidence describes.",
+      "check": "productVersionIdentifiable",
+      "priority": "P1",
+      "limitations": "Establishes the repository version. It does not prove that the artefact delivered to customers was built from this commit.",
+      "expertReviewWhen": [
+        "the version delivered to customers is produced outside this repository"
+      ],
+      "remediation": "Set a version in package.json, tag the release commit, and record the mapping between tag, package version and delivered artefact.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-002",
+      "title": "Intended purpose and security environment are recorded",
+      "family": "product-identification",
+      "loci": [
+        "AnnexVII.1.a",
+        "AnnexII.4",
+        "AnnexII.5"
+      ],
+      "intent": "The technical documentation opens with what the product is for and the security environment the manufacturer assumes.",
+      "check": "declaredFields",
+      "checkOptions": {
+        "required": [
+          "product.intendedPurpose"
+        ],
+        "recommended": [
+          "product.securityEnvironment",
+          "product.foreseeableMisuse"
+        ]
+      },
+      "priority": "P1",
+      "limitations": "Declared by the manufacturer. Nothing in a repository can confirm the stated intended purpose.",
+      "expertReviewWhen": [
+        "the intended purpose determines whether the product falls under Annex III or Annex IV"
+      ],
+      "remediation": "Fill product.intendedPurpose, product.securityEnvironment and product.foreseeableMisuse in the product profile.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-003",
+      "title": "Manufacturer identity and single point of contact are recorded",
+      "family": "product-identification",
+      "loci": [
+        "AnnexII.1",
+        "AnnexII.2",
+        "Art.13.16",
+        "Art.13.17"
+      ],
+      "intent": "Users and market surveillance authorities must be able to reach a named legal person directly.",
+      "check": "declaredFields",
+      "checkOptions": {
+        "required": [
+          "manufacturer.legalName",
+          "manufacturer.singlePointOfContact"
+        ],
+        "recommended": [
+          "manufacturer.postalAddress",
+          "manufacturer.website"
+        ]
+      },
+      "priority": "P1",
+      "limitations": "Declared. This tool does not verify that the contact is monitored or that it accepts non-automated communication.",
+      "expertReviewWhen": [
+        "the manufacturer is not established in the Union, which engages Articles 18 to 20"
+      ],
+      "remediation": "Complete the manufacturer block of the product profile, including a contact that is not limited to automated tools.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-004",
+      "title": "Regulatory role and product classification have a documented owner",
+      "family": "product-identification",
+      "loci": [
+        "Art.3.def.manufacturer",
+        "Art.3.def.open-source-software-steward",
+        "AnnexIII",
+        "AnnexIV",
+        "Art.32.1"
+      ],
+      "intent": "Which obligations attach at all depends on the role and the product class. This tool records the determination and its owner; it never makes it.",
+      "check": "regulatoryPositionDetermined",
+      "priority": "P0",
+      "limitations": "A legal determination. The tool only checks that a determination exists, names a responsible person and is not left as 'undetermined'.",
+      "expertReviewWhen": [
+        "always: this control exists to route the question to a competent reviewer"
+      ],
+      "remediation": "Have a competent reviewer determine the role under Article 3 and the classification against Annexes III and IV, then record it with a name and a date in regulatoryPosition.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-010",
+      "title": "A machine-readable SBOM covers at least the top-level dependencies",
+      "family": "components-and-sbom",
+      "loci": [
+        "AnnexI.PartII.1",
+        "AnnexVII.2.b",
+        "AnnexVII.8"
+      ],
+      "intent": "Annex I, Part II, point (1) sets the floor at the top-level dependencies in a commonly used, machine-readable format.",
+      "check": "sbomTopLevelCoverage",
+      "priority": "P0",
+      "limitations": "Coverage is measured against the dependencies declared in package.json and resolved by the lockfile. Components introduced at build time, vendored code and non-npm components are outside this measurement.",
+      "expertReviewWhen": [
+        "the product ships components that npm does not install",
+        "a bundler inlines dependencies not present in the lockfile"
+      ],
+      "remediation": "Commit a package-lock.json produced by npm 7 or later, then publish the generated sbom.cdx.json alongside each release.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-011",
+      "title": "Component integrity is recorded for the shipped dependencies",
+      "family": "components-and-sbom",
+      "loci": [
+        "AnnexI.PartII.1",
+        "Art.13.5"
+      ],
+      "intent": "Due diligence on third-party components is easier to demonstrate when every component carries a verified integrity hash.",
+      "check": "componentIntegrityCoverage",
+      "priority": "P2",
+      "limitations": "This control is supporting evidence for the due diligence duty in Article 13(5). The Regulation does not itself require integrity hashes in the SBOM.",
+      "expertReviewWhen": [],
+      "remediation": "Regenerate the lockfile with npm 7 or later so that every entry carries an integrity field, and avoid dependencies resolved outside a registry.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-012",
+      "title": "Dependency vulnerabilities are monitored continuously",
+      "family": "components-and-sbom",
+      "loci": [
+        "AnnexI.PartII.1",
+        "AnnexI.PartII.2",
+        "Art.13.6"
+      ],
+      "intent": "Identifying vulnerabilities in components is a continuous duty, not a release-time snapshot.",
+      "check": "dependencyMonitoring",
+      "priority": "P1",
+      "limitations": "Detected from configuration files and workflow text. Presence of configuration does not prove that alerts are triaged or that fixes ship.",
+      "expertReviewWhen": [
+        "monitoring runs in a system outside this repository"
+      ],
+      "remediation": "Enable Dependabot or Renovate for the npm ecosystem, and add a scheduled dependency audit job to CI.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-020",
+      "title": "A coordinated vulnerability disclosure policy is published",
+      "family": "vulnerability-handling",
+      "loci": [
+        "AnnexI.PartII.5",
+        "AnnexVII.2.b",
+        "AnnexII.2"
+      ],
+      "intent": "Annex I, Part II, point (5) requires the policy to be in place and enforced, and Annex VII expects it inside the technical documentation.",
+      "check": "disclosurePolicy",
+      "priority": "P0",
+      "limitations": "The tool detects a published policy document and wording associated with coordinated disclosure. It cannot assess whether the policy is enforced.",
+      "expertReviewWhen": [
+        "the policy is published outside the repository",
+        "the policy must cover components maintained by third parties"
+      ],
+      "remediation": "Publish a SECURITY.md stating how to report, the acknowledgement window, and the disclosure and embargo approach; reference its URL in the product profile.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-021",
+      "title": "A contact address for reporting vulnerabilities is provided",
+      "family": "vulnerability-handling",
+      "loci": [
+        "AnnexI.PartII.6",
+        "AnnexII.2",
+        "Art.13.17"
+      ],
+      "intent": "Annex VII, point 2(b) asks specifically for evidence of the provision of a reporting contact address.",
+      "check": "reportingContact",
+      "priority": "P0",
+      "limitations": "Detects a contact in the repository or the profile. Does not verify that the address is monitored.",
+      "expertReviewWhen": [
+        "the single point of contact under Article 13(17) differs from the security reporting address"
+      ],
+      "remediation": "State a reporting address in SECURITY.md or a .well-known/security.txt file, and record it in vulnerabilityHandling.reportingContact.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-022",
+      "title": "Fixed vulnerabilities are publicly disclosed",
+      "family": "vulnerability-handling",
+      "loci": [
+        "AnnexI.PartII.4"
+      ],
+      "intent": "Once a security update ships, users need a description, affected versions, severity and remediation guidance.",
+      "check": "publicDisclosureOfFixes",
+      "priority": "P1",
+      "limitations": "Detected from changelog structure, CVE and GHSA identifiers, and advisory files in the repository. Advisories published only on a vendor portal are invisible here.",
+      "expertReviewWhen": [
+        "a publication was deliberately delayed under the justified-case proviso in Annex I, Part II, point (4)"
+      ],
+      "remediation": "Publish an advisory per fixed vulnerability, reference its identifier in the changelog, and record the advisory channel URL in the product profile.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-023",
+      "title": "Updates are distributed through a secure mechanism",
+      "family": "vulnerability-handling",
+      "loci": [
+        "AnnexI.PartII.7",
+        "AnnexVII.2.b"
+      ],
+      "intent": "Annex VII, point 2(b) asks for a description of the technical solutions chosen for the secure distribution of updates.",
+      "check": "secureUpdateDistribution",
+      "priority": "P1",
+      "limitations": "Provenance and signing are detected as textual mentions in workflow files. A mention is not proof that an artefact was signed.",
+      "expertReviewWhen": [
+        "updates reach customers through a channel this repository does not describe"
+      ],
+      "remediation": "Publish with npm provenance or sign release artefacts, and describe the distribution mechanism in vulnerabilityHandling.updateDistributionMechanism.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-024",
+      "title": "Security updates are provided separately from functionality updates",
+      "family": "vulnerability-handling",
+      "loci": [
+        "AnnexI.PartII.2",
+        "AnnexI.PartII.8"
+      ],
+      "intent": "Where technically feasible, a user must be able to take a fix without taking a feature change.",
+      "check": "declaredFields",
+      "checkOptions": {
+        "required": [
+          "vulnerabilityHandling.securityUpdatesSeparateFromFeatures"
+        ],
+        "expertReview": true
+      },
+      "priority": "P2",
+      "limitations": "Whether separation is technically feasible is a product judgement. Recorded as a declaration.",
+      "expertReviewWhen": [
+        "always: technical feasibility must be assessed and justified by the product owner"
+      ],
+      "remediation": "Record the release policy, and where separation is not feasible, record the technical justification.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-030",
+      "title": "Security of the product is tested and reviewed regularly",
+      "family": "security-testing",
+      "loci": [
+        "AnnexI.PartII.3",
+        "AnnexVII.6"
+      ],
+      "intent": "Annex VII, point 6 expects reports of the tests carried out to verify conformity with Annex I.",
+      "check": "securityTesting",
+      "priority": "P1",
+      "limitations": "Detected from workflow text. The tool does not execute the test suite, read run history, or judge test adequacy. Passing this control is not a test report.",
+      "expertReviewWhen": [
+        "always, before the result is used as the Annex VII, point 6 test report"
+      ],
+      "remediation": "Run the test suite and a dependency audit in CI on every change, add static analysis, and retain the run reports with the technical documentation.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-040",
+      "title": "The support period end date is stated with at least a month and a year",
+      "family": "support-period",
+      "loci": [
+        "Art.13.19",
+        "AnnexII.7"
+      ],
+      "intent": "Article 13(19) fixes the granularity: at least the month and the year, communicated at the time of purchase.",
+      "check": "supportPeriodEndDate",
+      "priority": "P0",
+      "limitations": "Checks the declaration and its format. Whether the date is visible at the time of purchase is not observable here.",
+      "expertReviewWhen": [
+        "the end date is communicated in a contract rather than in product documentation"
+      ],
+      "remediation": "Set supportPeriod.endDate to YYYY-MM or YYYY-MM-DD and state where the date is published in supportPeriod.publishedAt.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-041",
+      "title": "The support period is at least five years, or the expected use time is shorter and recorded",
+      "family": "support-period",
+      "loci": [
+        "Art.13.8",
+        "Art.3.def.support-period"
+      ],
+      "intent": "The third subparagraph of Article 13(8) sets a five-year floor, with a single exception when the product is expected to be in use for less.",
+      "check": "supportPeriodDuration",
+      "priority": "P0",
+      "limitations": "Arithmetic on declared dates. The reference date is the declared placing on the market; without it the duration cannot be computed.",
+      "expertReviewWhen": [
+        "the declared expected lifetime is under five years",
+        "a delegated act sets a minimum for this product category"
+      ],
+      "remediation": "Record regulatoryPosition.placingOnMarketDate and a supportPeriod.endDate at least five years later, or record the shorter expected lifetime and its justification.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-042",
+      "title": "The reasoning behind the support period is recorded",
+      "family": "support-period",
+      "loci": [
+        "AnnexVII.4",
+        "Art.13.8"
+      ],
+      "intent": "Annex VII, point 4 requires the information taken into account to determine the support period to be in the technical documentation.",
+      "check": "declaredFields",
+      "checkOptions": {
+        "required": [
+          "supportPeriod.rationale"
+        ]
+      },
+      "priority": "P1",
+      "limitations": "Declared. The tool checks that a rationale exists, not that it is adequate.",
+      "expertReviewWhen": [
+        "the rationale relies on comparable products or on component support periods"
+      ],
+      "remediation": "Write down the user expectations, product nature and component support periods that informed the chosen end date.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-043",
+      "title": "Security updates stay available for at least ten years or the remainder of the support period",
+      "family": "support-period",
+      "loci": [
+        "Art.13.9"
+      ],
+      "intent": "Article 13(9) sets a retention duty on the updates themselves, separate from the support period.",
+      "check": "securityUpdateAvailability",
+      "priority": "P1",
+      "limitations": "Declared value compared against the ten-year floor and the remaining support period.",
+      "expertReviewWhen": [
+        "update hosting is outsourced to a third party"
+      ],
+      "remediation": "Record supportPeriod.securityUpdateAvailabilityYears and ensure the hosting arrangement matches it.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-050",
+      "title": "The Annex II information set is complete",
+      "family": "user-information",
+      "loci": [
+        "AnnexII.1",
+        "AnnexII.2",
+        "AnnexII.3",
+        "AnnexII.4",
+        "AnnexII.5",
+        "AnnexII.6",
+        "AnnexII.7",
+        "AnnexII.8",
+        "AnnexII.9",
+        "AnnexVII.1.d",
+        "Art.13.18"
+      ],
+      "intent": "Annex II is an enumerated minimum. Each of its nine points is checked separately so a gap names the point it belongs to.",
+      "check": "annexTwoCoverage",
+      "priority": "P0",
+      "limitations": "Coverage is measured against the profile and detected documents, not against what actually accompanies the delivered product.",
+      "expertReviewWhen": [
+        "the user information is delivered with the product rather than published in the repository"
+      ],
+      "remediation": "Complete the missing Annex II points in the product profile and publish them with the product.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-051",
+      "title": "Secure installation, update and decommissioning instructions exist",
+      "family": "user-information",
+      "loci": [
+        "AnnexII.8.a",
+        "AnnexII.8.c",
+        "AnnexII.8.d"
+      ],
+      "intent": "Annex II, point 8 lists the instructions a user needs to commission, maintain and retire the product securely.",
+      "check": "secureUsageInstructions",
+      "priority": "P1",
+      "limitations": "Detected from document headings and keywords, plus declarations. Wording detection is a weak signal and never reaches 'verified' on its own.",
+      "expertReviewWhen": [
+        "the product is integrated into other products, which adds Annex II, point 8(f)"
+      ],
+      "remediation": "Add a secure configuration section covering initial commissioning, applying security updates and secure decommissioning including data removal.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-060",
+      "title": "A cybersecurity risk assessment exists and is referenced",
+      "family": "risk-and-documentation",
+      "loci": [
+        "Art.13.2",
+        "Art.13.3",
+        "Art.13.4",
+        "AnnexVII.3"
+      ],
+      "intent": "The risk assessment is the document that decides how Annex I, Part I applies. Without it the technical documentation has no spine.",
+      "check": "riskAssessment",
+      "priority": "P0",
+      "limitations": "This tool cannot read, produce or judge a risk assessment. It records whether one is referenced and when it was last updated.",
+      "expertReviewWhen": [
+        "always: the assessment itself must be reviewed by a competent person"
+      ],
+      "remediation": "Produce the risk assessment required by Article 13(2) and (3), reference it in riskAssessment.documentReference and keep it updated during the support period.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-061",
+      "title": "Non-applicable essential requirements carry a written justification",
+      "family": "risk-and-documentation",
+      "loci": [
+        "Art.13.4"
+      ],
+      "intent": "Article 13(4) makes a justified exclusion itself a required part of the technical documentation.",
+      "check": "notApplicableJustifications",
+      "priority": "P1",
+      "limitations": "The tool checks that each declared exclusion names a valid locus and carries a justification. It does not judge whether the justification holds.",
+      "expertReviewWhen": [
+        "always: each exclusion is a legal position"
+      ],
+      "remediation": "For every Annex I requirement treated as not applicable, record the locus and a clear justification in riskAssessment.notApplicableRequirements.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-062",
+      "title": "Technical documentation location, update process and retention are recorded",
+      "family": "risk-and-documentation",
+      "loci": [
+        "Art.31.1",
+        "Art.31.2",
+        "Art.13.13"
+      ],
+      "intent": "The documentation must exist before placing on the market, be kept updated during the support period, and be retained for at least ten years.",
+      "check": "technicalDocumentation",
+      "priority": "P1",
+      "limitations": "Declared. The tool does not inspect the documentation store.",
+      "expertReviewWhen": [
+        "retention is shorter than the support period"
+      ],
+      "remediation": "Record where the technical documentation lives, how it is updated on each release, and the retention period.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-070",
+      "title": "A conformity assessment route and an EU declaration of conformity are identified",
+      "family": "conformity",
+      "loci": [
+        "Art.32.1",
+        "Art.28.1",
+        "AnnexV.1",
+        "AnnexVII.5",
+        "AnnexII.6",
+        "AnnexVII.7"
+      ],
+      "intent": "Annex VII, point 7 expects a copy of the EU declaration of conformity in the technical documentation, and point 5 the list of harmonised standards applied or, where none were, the solutions adopted instead.",
+      "check": "conformityRoute",
+      "priority": "P1",
+      "limitations": "Recorded as a declaration. This tool performs no conformity assessment and issues no declaration.",
+      "expertReviewWhen": [
+        "always: the route depends on the classification under Annexes III and IV and on Article 32"
+      ],
+      "remediation": "Determine the applicable module under Article 32, and once the assessment is complete record the URL of the EU declaration of conformity.",
+      "status": "active"
+    },
+    {
+      "id": "CRA-NODE-080",
+      "title": "The Article 14 reporting procedure is documented and owned",
+      "family": "incident-reporting",
+      "loci": [
+        "Art.14.1",
+        "Art.14.2",
+        "Art.14.3",
+        "Art.16.1"
+      ],
+      "intent": "Article 14 applies from 11 September 2026, ahead of the rest of the Regulation. A procedure has to exist before an actively exploited vulnerability appears, not after.",
+      "check": "incidentReportingReadiness",
+      "priority": "P0",
+      "limitations": "Declared. The tool checks that a procedure, an owner and a coordinating CSIRT are recorded; it cannot rehearse the procedure.",
+      "expertReviewWhen": [
+        "always: the coordinating CSIRT and the notification deadlines must be confirmed for the Member States concerned"
+      ],
+      "remediation": "Write the procedure covering the 24-hour early warning, the 72-hour vulnerability notification and the 14-day final report through the single reporting platform, and name the person responsible.",
+      "status": "active"
+    }
+  ]
+}

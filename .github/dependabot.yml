@@ -1,0 +1,12 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+  # The npm entry is kept although this package has no runtime dependency, so
+  # that a dependency introduced later is picked up from its first day.
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly

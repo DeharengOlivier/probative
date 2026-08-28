@@ -1,0 +1,62 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # The ruleset cites a moving regulatory target. A weekly run surfaces a
+    # reference that no longer matches its recorded digest.
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        node: ['20.11', '22', '24']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: node --test "test/unit/*.test.mjs" "test/integration/*.test.mjs"
+
+  reference-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: The shipped Regulation matches its recorded digests
+        run: cd reference && shasum -a 256 -c SHA256SUMS
+      - name: The locus index is reproducible from the shipped text
+        run: |
+          node scripts/build-reference.mjs
+          git diff --exit-code reference/
+      - name: docs/coverage.md is generated, not hand-edited
+        run: |
+          node scripts/generate-coverage-doc.mjs
+          git diff --exit-code docs/coverage.md
+
+  dogfood:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Produce this repository's own evidence pack
+        run: node bin/cra-evidence.mjs run . --out cra-evidence/ --force
+      - name: Verify it
+        run: node bin/cra-evidence.mjs verify cra-evidence/ --against .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cra-evidence-pack
+          path: cra-evidence/

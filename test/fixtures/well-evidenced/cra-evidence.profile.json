@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "1.0.0",
+  "product": {
+    "commercialName": "VaultKeeper Server",
+    "identifier": "VK-SRV",
+    "intendedPurpose": "Encrypted document storage for small accounting practices, deployed on customer premises.",
+    "securityEnvironment": "Runs behind the customer firewall on a hardened Linux host with no direct internet exposure.",
+    "foreseeableMisuse": "Exposing the administration port to the public internet without a reverse proxy.",
+    "deliveryForm": "npm-package",
+    "integratedIntoOtherProducts": false
+  },
+  "manufacturer": {
+    "legalName": "Example Software SARL",
+    "tradeName": "VaultKeeper",
+    "postalAddress": "12 rue de Exemple, L-1234 Luxembourg",
+    "email": "contact@example.com",
+    "website": "https://example.com",
+    "singlePointOfContact": "security@example.com",
+    "establishedInUnion": true
+  },
+  "regulatoryPosition": {
+    "role": "manufacturer",
+    "roleJustification": "Develops and markets the product under its own name.",
+    "placedOnUnionMarket": true,
+    "placingOnMarketDate": "2026-01-15",
+    "productClassification": "default",
+    "classificationJustification": "Not listed in Annex III or Annex IV.",
+    "conformityAssessmentModule": "module-A-internal-control",
+    "euDeclarationOfConformityUrl": "https://example.com/vaultkeeper/doc",
+    "harmonisedStandardsApplied": [],
+    "determinedBy": "Head of Product Compliance",
+    "determinedOn": "2026-02-01"
+  },
+  "supportPeriod": {
+    "endDate": "2031-06",
+    "rationale": "Five and a half years from placing on the market, matching the customer contract term and the support period of the runtime.",
+    "expectedProductLifetimeYears": 7,
+    "securityUpdateAvailabilityYears": 10,
+    "publishedAt": "https://example.com/vaultkeeper/support and in the purchase confirmation"
+  },
+  "vulnerabilityHandling": {
+    "reportingContact": "security@example.com",
+    "disclosurePolicyUrl": "https://github.com/example/vaultkeeper/blob/main/SECURITY.md",
+    "advisoryChannelUrl": "https://github.com/example/vaultkeeper/security/advisories",
+    "securityUpdatesSeparateFromFeatures": true,
+    "updateDistributionMechanism": "Signed npm releases published with build provenance, verified by the installer.",
+    "automaticSecurityUpdates": false,
+    "incidentReporting": {
+      "procedureDocumented": true,
+      "procedureLocation": "internal runbook IR-014",
+      "responsibleRole": "Head of Security",
+      "singleReportingPlatformPrepared": true,
+      "csirtCoordinator": "CIRCL, Luxembourg"
+    }
+  },
+  "riskAssessment": {
+    "documentReference": "RA-VK-2026-02",
+    "lastUpdated": "2026-06-01",
+    "coversAnnexIPartI": true,
+    "notApplicableRequirements": [
+      {
+        "locus": "AnnexI.PartI.2.i",
+        "justification": "The product provides no network service to other devices, so it cannot affect the availability of services provided by other devices or networks."
+      }
+    ]
+  },
+  "technicalDocumentation": {
+    "location": "Internal compliance repository, folder TD/VaultKeeper",
+    "retentionYears": 10,
+    "updateProcess": "Regenerated and reviewed at every minor release."
+  },
+  "userInformation": {
+    "location": "https://example.com/vaultkeeper/docs",
+    "secureInstallationInstructions": "docs/hardening.md, section Secure installation",
+    "secureDecommissioningInstructions": "docs/hardening.md, section Secure decommissioning",
+    "sbomDisclosedToUsers": true
+  },
+  "notes": null
+}

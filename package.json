@@ -1,0 +1,43 @@
+{
+  "name": "cra-evidence",
+  "version": "0.1.0",
+  "description": "Turn a Node.js repository into a reproducible, source-linked CRA technical evidence pack. Prepares technical evidence; never claims legal compliance.",
+  "type": "module",
+  "bin": {
+    "cra-evidence": "bin/cra-evidence.mjs"
+  },
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "files": [
+    "bin",
+    "src",
+    "rules",
+    "schemas",
+    "reference",
+    "SKILL.md",
+    "NOTICE"
+  ],
+  "scripts": {
+    "test": "node --test \"test/unit/*.test.mjs\" \"test/integration/*.test.mjs\"",
+    "test:unit": "node --test \"test/unit/*.test.mjs\"",
+    "test:integration": "node --test \"test/integration/*.test.mjs\"",
+    "selfcheck": "node bin/cra-evidence.mjs inspect . --json",
+    "fixtures": "node test/build-fixtures.mjs",
+    "docs": "node scripts/generate-coverage-doc.mjs"
+  },
+  "keywords": [
+    "cra",
+    "cyber-resilience-act",
+    "sbom",
+    "cyclonedx",
+    "compliance-evidence",
+    "eu"
+  ],
+  "license": "Apache-2.0",
+  "dependencies": {},
+  "devDependencies": {}
+}

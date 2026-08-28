@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/DeharengOlivier/cra-evidence/schemas/product-profile.schema.json",
+  "title": "CRA evidence product profile",
+  "description": "Declarations that cannot be observed in a repository. Every field here is stated by the manufacturer and is reported with status 'declared', never 'verified'. Field descriptions cite the locus of Regulation (EU) 2024/2847 that makes the information relevant.",
+  "type": "object",
+  "required": ["schemaVersion", "product", "manufacturer", "regulatoryPosition", "supportPeriod", "vulnerabilityHandling"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0.0" },
+    "product": {
+      "type": "object",
+      "required": ["commercialName", "intendedPurpose"],
+      "additionalProperties": false,
+      "properties": {
+        "commercialName": { "type": "string", "minLength": 1, "description": "Annex II, point 3; Annex V, point 1: name enabling unique identification." },
+        "identifier": { "type": ["string", "null"], "description": "Annex II, point 3; Article 13(15): type, batch or serial identifier." },
+        "intendedPurpose": { "type": "string", "minLength": 1, "description": "Annex VII, point 1(a); Annex II, point 4." },
+        "securityEnvironment": { "type": ["string", "null"], "description": "Annex II, point 4: the security environment provided by the manufacturer." },
+        "foreseeableMisuse": { "type": ["string", "null"], "description": "Annex II, point 5: circumstances that may lead to significant cybersecurity risks." },
+        "deliveryForm": { "type": "string", "enum": ["npm-package", "installer", "container-image", "source-distribution", "hosted-service", "other"] },
+        "integratedIntoOtherProducts": { "type": ["boolean", "null"], "description": "Annex II, point 8(f): triggers integrator information duties." }
+      }
+    },
+    "manufacturer": {
+      "type": "object",
+      "required": ["legalName", "singlePointOfContact"],
+      "additionalProperties": false,
+      "properties": {
+        "legalName": { "type": "string", "minLength": 1, "description": "Annex II, point 1; Article 13(16)." },
+        "tradeName": { "type": ["string", "null"] },
+        "postalAddress": { "type": ["string", "null"], "description": "Annex II, point 1." },
+        "email": { "type": ["string", "null"] },
+        "website": { "type": ["string", "null"] },
+        "singlePointOfContact": { "type": "string", "minLength": 1, "description": "Article 13(17); Annex II, point 2: how users reach the manufacturer directly, not limited to automated tools." },
+        "establishedInUnion": { "type": ["boolean", "null"], "description": "Determines whether an authorised representative or importer duties apply (Articles 18 to 20)." }
+      }
+    },
+    "regulatoryPosition": {
+      "type": "object",
+      "required": ["role", "productClassification", "determinedBy"],
+      "additionalProperties": false,
+      "properties": {
+        "role": { "type": "string", "enum": ["manufacturer", "open-source-software-steward", "importer", "distributor", "out-of-scope", "undetermined"], "description": "Article 3, points (13) and (14); Article 24. This tool never infers the role." },
+        "roleJustification": { "type": ["string", "null"] },
+        "placedOnUnionMarket": { "type": ["boolean", "null"], "description": "Article 3, point (21): first making available on the Union market." },
+        "placingOnMarketDate": { "type": ["string", "null"], "description": "Reference date for the support period. Format YYYY-MM-DD." },
+        "productClassification": { "type": "string", "enum": ["default", "important-class-I", "important-class-II", "critical", "undetermined"], "description": "Annexes III and IV. Drives the conformity assessment route under Article 32." },
+        "classificationJustification": { "type": ["string", "null"] },
+        "conformityAssessmentModule": { "type": "string", "enum": ["module-A-internal-control", "module-B-C-eu-type-examination", "module-H-full-quality-assurance", "european-cybersecurity-certification-scheme", "undetermined"], "description": "Article 32(1)." },
+        "euDeclarationOfConformityUrl": { "type": ["string", "null"], "description": "Annex II, point 6; Article 28; Annex V." },
+        "harmonisedStandardsApplied": { "type": "array", "items": { "type": "string" }, "description": "Annex VII, point 5." },
+        "determinedBy": { "type": "string", "minLength": 1, "description": "Who inside the organisation made this determination. Required so the pack shows a human owner." },
+        "determinedOn": { "type": ["string", "null"], "description": "Format YYYY-MM-DD." }
+      }
+    },
+    "supportPeriod": {
+      "type": "object",
+      "required": ["endDate"],
+      "additionalProperties": false,
+      "properties": {
+        "endDate": { "type": ["string", "null"], "description": "Article 13(19): at least month and year. Format YYYY-MM or YYYY-MM-DD." },
+        "rationale": { "type": ["string", "null"], "description": "Annex VII, point 4; Article 13(8): the information taken into account to determine the period." },
+        "expectedProductLifetimeYears": { "type": ["number", "null"], "minimum": 0, "description": "Article 13(8): a period below five years is only defensible when the expected use time is shorter." },
+        "securityUpdateAvailabilityYears": { "type": ["number", "null"], "minimum": 0, "description": "Article 13(9): each security update stays available at least 10 years, or the remainder of the support period if longer." },
+        "publishedAt": { "type": ["string", "null"], "description": "Article 13(19): where the end date is stated to the user at the time of purchase." }
+      }
+    },
+    "vulnerabilityHandling": {
+      "type": "object",
+      "required": ["reportingContact"],
+      "additionalProperties": false,
+      "properties": {
+        "reportingContact": { "type": "string", "minLength": 1, "description": "Annex I, Part II, point (6); Annex II, point 2." },
+        "disclosurePolicyUrl": { "type": ["string", "null"], "description": "Annex I, Part II, point (5)." },
+        "advisoryChannelUrl": { "type": ["string", "null"], "description": "Annex I, Part II, point (4): where fixed vulnerabilities are published." },
+        "securityUpdatesSeparateFromFeatures": { "type": ["boolean", "null"], "description": "Annex I, Part II, point (2)." },
+        "updateDistributionMechanism": { "type": ["string", "null"], "description": "Annex I, Part II, point (7); Annex VII, point 2(b)." },
+        "automaticSecurityUpdates": { "type": ["boolean", "null"], "description": "Annex I, Part I, point (2)(c)." },
+        "incidentReporting": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "procedureDocumented": { "type": ["boolean", "null"], "description": "Article 14: applies from 11 September 2026." },
+            "procedureLocation": { "type": ["string", "null"] },
+            "responsibleRole": { "type": ["string", "null"] },
+            "singleReportingPlatformPrepared": { "type": ["boolean", "null"], "description": "Article 16: the single reporting platform operated by ENISA." },
+            "csirtCoordinator": { "type": ["string", "null"], "description": "Article 14(1): the CSIRT designated as coordinator in the relevant Member State." }
+          }
+        }
+      }
+    },
+    "riskAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "documentReference": { "type": ["string", "null"], "description": "Article 13(2) to (4); Annex VII, point 3." },
+        "lastUpdated": { "type": ["string", "null"], "description": "Format YYYY-MM-DD." },
+        "coversAnnexIPartI": { "type": ["boolean", "null"] },
+        "notApplicableRequirements": {
+          "type": "array",
+          "description": "Article 13(4): where an essential requirement does not apply, the technical documentation must carry a clear justification. Each entry is that justification.",
+          "items": {
+            "type": "object",
+            "required": ["locus", "justification"],
+            "additionalProperties": false,
+            "properties": {
+              "locus": { "type": "string", "pattern": "^AnnexI\\.Part(I|II)\\.[0-9]+(\\.[a-z])?$" },
+              "justification": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    },
+    "technicalDocumentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "location": { "type": ["string", "null"], "description": "Article 31." },
+        "retentionYears": { "type": ["number", "null"], "minimum": 0, "description": "Article 13(13): at least 10 years, or the support period if longer." },
+        "updateProcess": { "type": ["string", "null"], "description": "Article 31(2): continuously updated at least during the support period." }
+      }
+    },
+    "userInformation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "location": { "type": ["string", "null"], "description": "Annex II; Article 13(18)." },
+        "secureInstallationInstructions": { "type": ["string", "null"], "description": "Annex II, point 8(a)." },
+        "secureDecommissioningInstructions": { "type": ["string", "null"], "description": "Annex II, point 8(d)." },
+        "sbomDisclosedToUsers": { "type": ["boolean", "null"], "description": "Annex II, point 9." }
+      }
+    },
+    "notes": { "type": ["string", "null"] }
+  }
+}

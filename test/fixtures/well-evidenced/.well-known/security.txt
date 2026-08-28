@@ -1,0 +1,3 @@
+Contact: mailto:security@example.com
+Expires: 2027-01-01T00:00:00.000Z
+Policy: https://github.com/example/vaultkeeper/blob/main/SECURITY.md
