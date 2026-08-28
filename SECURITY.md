@@ -2,9 +2,10 @@
 
 ## Reporting a vulnerability
 
-Report vulnerabilities through the repository's private security advisory form,
-or by email to the address published on the project page. Please do not open a
-public issue for a security problem.
+Report vulnerabilities through GitHub private vulnerability reporting:
+<https://github.com/DeharengOlivier/probative/security/advisories/new>. If that
+form is unavailable to you, write to deharengolivier@gmail.com. Please do not
+open a public issue for a security problem.
 
 We aim to acknowledge a report within 5 business days, and we practise
 coordinated disclosure: we agree a publication date with the reporter and we

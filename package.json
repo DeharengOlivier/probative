@@ -38,6 +38,18 @@
     "eu"
   ],
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DeharengOlivier/probative.git"
+  },
+  "homepage": "https://github.com/DeharengOlivier/probative#readme",
+  "bugs": {
+    "url": "https://github.com/DeharengOlivier/probative/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "dependencies": {},
   "devDependencies": {}
 }

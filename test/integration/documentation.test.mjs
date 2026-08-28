@@ -117,3 +117,27 @@ test('the skill interview asks both Article 14 tracks with their own clock', () 
   assert.match(skill, /Article 14\(5\)/);
   assert.match(skill, /Article 14\(8\)/);
 });
+
+test('GitHub Actions are pinned to immutable commit SHAs', () => {
+  const workflow = readFileSync(join(projectRoot, '.github', 'workflows', 'ci.yml'), 'utf8');
+  const uses = [...workflow.matchAll(/uses:\s*(\S+)/g)].map((m) => m[1]);
+  assert.ok(uses.length > 0, 'no actions found, the pattern must have changed');
+  for (const ref of uses) {
+    assert.match(ref, /@[0-9a-f]{40}$/, `${ref} is pinned to a mutable tag, not a commit`);
+  }
+});
+
+test('the security policy names a reporting channel that exists', () => {
+  const policy = readFileSync(join(projectRoot, 'SECURITY.md'), 'utf8');
+  assert.doesNotMatch(policy, /published on the project page/, 'no address is actually published there');
+  assert.match(policy, /https:\/\/github\.com\/\S+\/security\/advisories\/new|[\w.+-]+@[\w.-]+\.\w+/,
+    'a security policy without a reachable channel is a dead end');
+});
+
+test('the package says where it lives, so npm and the registry agree', () => {
+  const pkg = JSON.parse(readFileSync(join(projectRoot, 'package.json'), 'utf8'));
+  assert.ok(pkg.repository?.url?.startsWith('git+https://'), 'repository url missing or not https');
+  assert.ok(pkg.homepage, 'homepage missing');
+  assert.ok(pkg.bugs?.url, 'bugs url missing');
+  assert.equal(pkg.publishConfig?.access, 'public', 'a scoped or private default would silently fail to publish');
+});
