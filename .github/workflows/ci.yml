@@ -25,7 +25,8 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ matrix.node }}
-      - run: node --test "test/unit/*.test.mjs" "test/integration/*.test.mjs"
+      # Run what a user runs, so the published script is the tested one.
+      - run: npm test
 
   reference-integrity:
     runs-on: ubuntu-latest

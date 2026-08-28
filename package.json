@@ -22,9 +22,9 @@
     "NOTICE"
   ],
   "scripts": {
-    "test": "node --test \"test/unit/*.test.mjs\" \"test/integration/*.test.mjs\"",
-    "test:unit": "node --test \"test/unit/*.test.mjs\"",
-    "test:integration": "node --test \"test/integration/*.test.mjs\"",
+    "test": "node --test test/unit/*.test.mjs test/integration/*.test.mjs",
+    "test:unit": "node --test test/unit/*.test.mjs",
+    "test:integration": "node --test test/integration/*.test.mjs",
     "selfcheck": "node bin/probative.mjs inspect . --json",
     "fixtures": "node test/build-fixtures.mjs",
     "docs": "node scripts/generate-coverage-doc.mjs"

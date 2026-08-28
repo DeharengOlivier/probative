@@ -144,3 +144,29 @@ test('a path that does not exist is a usage error, not a crash', () => {
   assert.equal(code, EXIT.USAGE);
   assert.match(err, /path does not exist/);
 });
+
+// A pack written inside the repository it describes must not change what the
+// repository looks like. The tool's own CycloneDX output is not an SBOM that
+// the product ships; reading it back as one made every self-contained pack fail
+// its own freshness check.
+test('a pack written inside the analysed repository still verifies against it', (t) => {
+  const scratch = copyFixture('well-evidenced');
+  t.after(scratch.cleanup);
+  const inside = join(scratch.path, 'cra-evidence');
+  const run = invoke(['run', scratch.path, '--out', inside, '--now', FIXED_NOW]);
+  assert.ok(run.code === EXIT.OK || run.code === EXIT.P0_GAPS, `run failed: ${run.err}`);
+  assert.ok(existsSync(join(inside, 'sbom.cdx.json')));
+
+  const verify = invoke(['verify', inside, '--against', scratch.path, '--now', FIXED_NOW]);
+  assert.equal(verify.code, EXIT.OK, `the pack cannot verify itself: ${verify.out}${verify.err}`);
+  assert.match(verify.out, /ok\s+freshness/);
+});
+
+test('the pack SBOM is reported as ignored rather than counted as the product SBOM', (t) => {
+  const scratch = copyFixture('well-evidenced');
+  t.after(scratch.cleanup);
+  invoke(['run', scratch.path, '--out', join(scratch.path, 'cra-evidence'), '--now', FIXED_NOW]);
+  const inventory = JSON.parse(invoke(['inspect', scratch.path, '--json', '--now', FIXED_NOW]).out);
+  assert.ok(!inventory.docs.existingSbom.paths.some((p) => p.startsWith('cra-evidence/')));
+  assert.ok(inventory.docs.existingSbom.excludedNonEvidencePaths.includes('cra-evidence/sbom.cdx.json'));
+});

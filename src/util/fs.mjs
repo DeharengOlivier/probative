@@ -73,12 +73,17 @@ export function isEvidencePath(relativePath) {
  * out loud what it ignored; a silent filter in a compliance tool is a trap.
  *
  * @param {string[]} paths
+ * @param {(path: string) => boolean} [isAlsoExcluded] a second reason to exclude,
+ *   supplied by the caller when relevance depends on repository content rather
+ *   than on the name of a directory.
  * @returns {{kept: string[], excluded: string[]}}
  */
-export function partitionByEvidenceRelevance(paths) {
+export function partitionByEvidenceRelevance(paths, isAlsoExcluded = () => false) {
   const kept = [];
   const excluded = [];
-  for (const path of paths) (isEvidencePath(path) ? kept : excluded).push(path);
+  for (const path of paths) {
+    (isEvidencePath(path) && !isAlsoExcluded(path) ? kept : excluded).push(path);
+  }
   return { kept, excluded };
 }
 

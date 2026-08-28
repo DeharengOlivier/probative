@@ -141,3 +141,30 @@ test('the package says where it lives, so npm and the registry agree', () => {
   assert.ok(pkg.bugs?.url, 'bugs url missing');
   assert.equal(pkg.publishConfig?.access, 'public', 'a scoped or private default would silently fail to publish');
 });
+
+test('the test script hands the runner file paths, not a glob it may not expand', () => {
+  const pkg = JSON.parse(readFileSync(join(projectRoot, 'package.json'), 'utf8'));
+  for (const [name, script] of Object.entries(pkg.scripts)) {
+    if (!script.includes('--test')) continue;
+    assert.doesNotMatch(script, /"[^"]*\*[^"]*"/,
+      `${name} quotes a glob; Node only expands one itself from v22, so the shell must do it`);
+  }
+});
+
+test('every Node version the CI exercises satisfies the engines floor', () => {
+  const pkg = JSON.parse(readFileSync(join(projectRoot, 'package.json'), 'utf8'));
+  const workflow = readFileSync(join(projectRoot, '.github', 'workflows', 'ci.yml'), 'utf8');
+  const matrix = workflow.match(/node:\s*\[([^\]]+)\]/);
+  assert.ok(matrix, 'the CI matrix must name the Node versions it claims to support');
+  const versions = matrix[1].split(',').map((v) => v.trim().replace(/['"]/g, ''));
+  const floor = pkg.engines.node.replace(/^>=/, '');
+  const [floorMajor, floorMinor = '0'] = floor.split('.');
+  for (const version of versions) {
+    const [major, minor = '0'] = version.split('.');
+    const satisfies = Number(major) > Number(floorMajor)
+      || (Number(major) === Number(floorMajor) && Number(minor) >= Number(floorMinor));
+    assert.ok(satisfies, `CI runs Node ${version} but engines requires ${pkg.engines.node}`);
+  }
+  assert.ok(versions.includes(floor) || versions.some((v) => v.startsWith(floorMajor)),
+    `nothing in CI exercises the ${floorMajor}.x floor that engines promises`);
+});

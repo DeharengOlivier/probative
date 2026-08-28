@@ -37,6 +37,41 @@ const SECURE_INSTALL_SIGNALS = [
 const SBOM_FILE = /(?:^|\/)(?:bom|sbom)[^/]*\.(?:json|xml)$|\.(?:cdx|spdx)\.(?:json|xml)$|(?:^|\/)sbom\/.*\.(?:json|xml)$/i;
 const VEX_FILE = /(?:^|\/)[^/]*vex[^/]*\.(?:json|xml)$/i;
 
+/**
+ * A probative pack is self-describing: it always carries both of these files at
+ * its own root. A pack written inside the repository it describes is the tool
+ * speaking about itself, and nothing inside it is evidence about the product.
+ * Without this, `probative run . --out cra-evidence/` produced a pack whose own
+ * CycloneDX file came back as an SBOM shipped by the product, which changed the
+ * observed state and made every self-contained pack fail its own freshness
+ * check.
+ */
+const PACK_MARKERS = ['evidence-manifest.json', 'pack.json'];
+
+/**
+ * @param {string[]} files repository-relative paths
+ * @returns {string[]} directories that hold a complete pack marker set
+ * Complexity: O(number of files).
+ */
+function packDirectories(files) {
+  const markersByDirectory = new Map();
+  for (const file of files) {
+    const separator = file.lastIndexOf('/');
+    // The repository root is never a pack: treating it as one would blank the
+    // entire inventory instead of excluding a subdirectory.
+    if (separator === -1) continue;
+    const name = file.slice(separator + 1);
+    if (!PACK_MARKERS.includes(name)) continue;
+    const directory = file.slice(0, separator);
+    const seen = markersByDirectory.get(directory) ?? new Set();
+    seen.add(name);
+    markersByDirectory.set(directory, seen);
+  }
+  return [...markersByDirectory]
+    .filter(([, seen]) => seen.size === PACK_MARKERS.length)
+    .map(([directory]) => directory);
+}
+
 function firstExisting(root, candidates) {
   for (const candidate of candidates) if (repoFileExists(root, candidate)) return candidate;
   return null;
@@ -76,11 +111,15 @@ export function inspectDocs(root) {
   const securityTxtPath = firstExisting(root, SECURITY_TXT);
   const securityTxtText = securityTxtPath ? readRepoFile(root, securityTxtPath) : null;
 
-  const advisories = partitionByEvidenceRelevance(files.filter((f) => /^\.github\/security\/advisories\//i.test(f) || /^security\/advisories\//i.test(f)));
-  const sboms = partitionByEvidenceRelevance(files.filter((f) => SBOM_FILE.test(f)));
-  const vexes = partitionByEvidenceRelevance(files.filter((f) => VEX_FILE.test(f)));
+  const packDirs = packDirectories(files);
+  const isToolOutput = (path) => packDirs.some((directory) => path.startsWith(`${directory}/`));
+
+  const advisories = partitionByEvidenceRelevance(files.filter((f) => /^\.github\/security\/advisories\//i.test(f) || /^security\/advisories\//i.test(f)), isToolOutput);
+  const sboms = partitionByEvidenceRelevance(files.filter((f) => SBOM_FILE.test(f)), isToolOutput);
+  const vexes = partitionByEvidenceRelevance(files.filter((f) => VEX_FILE.test(f)), isToolOutput);
   const secureConfigDocs = partitionByEvidenceRelevance(
     files.filter((f) => /(?:hardening|security|secure-config|threat-model|deployment)/i.test(f) && /\.(md|rst|txt|adoc)$/i.test(f)),
+    isToolOutput,
   );
 
   const combinedUserDocs = [readmeText, changelogText, securityPolicyText].filter(Boolean).join('\n');

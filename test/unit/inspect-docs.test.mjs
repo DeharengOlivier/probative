@@ -170,3 +170,43 @@ test('the secure usage check tolerates an inventory without the excluded list', 
   });
   assert.equal(outcome.status, 'missing');
 });
+
+// --- The tool's own output is not evidence about the product -----------------
+
+test('a probative pack inside the repository is not product evidence', () => {
+  withRepo({
+    'package.json': '{"name":"x"}',
+    'bom.json': '{}',
+    'cra-evidence/pack.json': '{}',
+    'cra-evidence/evidence-manifest.json': '{}',
+    'cra-evidence/sbom.cdx.json': '{"bomFormat":"CycloneDX"}',
+    'cra-evidence/SECURITY.md': 'copied into the pack',
+  }, (docs) => {
+    assert.deepEqual(docs.existingSbom.paths, ['bom.json'], 'the pack SBOM is the tool speaking about itself');
+    assert.ok(docs.existingSbom.excludedNonEvidencePaths.includes('cra-evidence/sbom.cdx.json'));
+    assert.ok(!docs.secureConfigurationDocs.matchedFiles.includes('cra-evidence/SECURITY.md'));
+  });
+});
+
+test('a directory carrying only one pack marker is still ordinary evidence', () => {
+  withRepo({
+    'package.json': '{"name":"x"}',
+    'artifacts/pack.json': '{}',
+    'artifacts/report.cdx.json': '{}',
+  }, (docs) => {
+    assert.deepEqual(docs.existingSbom.paths, ['artifacts/report.cdx.json'],
+      'one marker is a coincidence, not a pack');
+  });
+});
+
+test('the repository root is never mistaken for a pack directory', () => {
+  withRepo({
+    'package.json': '{"name":"x"}',
+    'pack.json': '{}',
+    'evidence-manifest.json': '{}',
+    'bom.json': '{}',
+  }, (docs) => {
+    assert.deepEqual(docs.existingSbom.paths, ['bom.json'],
+      'treating the root as a pack would blank the whole inventory');
+  });
+});
