@@ -1,116 +1,146 @@
-# CRA Evidence Pack Skill - plan de conception et d'implémentation
+# CRA Evidence Pack skill - design and implementation plan
 
-Date : 28 août 2026  
-Statut : conception approuvée, implémentation non commencée  
-Reprise prévue : Claude Code  
+Date: 28 August 2026
+Status: design approved; implemented on 28 August 2026, see `CHANGELOG.md`
+Written for: handover to Claude Code
 
-## 1. Résumé
+> This document is the original design, translated from French on 29 August
+> 2026 so that every file in the repository is in English. Its content is
+> unchanged apart from the status line above. Where the implementation departed
+> from the plan, the reasons are recorded in `CHANGELOG.md` and in the commit
+> messages, not by editing this document. It is a historical record, not a
+> description of what was built.
 
-Créer un skill portable pour agents IA qui aide une PME commercialisant un logiciel Node.js installable chez ses clients à préparer un dossier de preuves techniques relatif au Cyber Resilience Act européen.
+## 1. Summary
 
-Le skill analyse un dépôt, collecte les éléments vérifiables déjà présents, exécute des contrôles déterministes, génère ou importe un SBOM CycloneDX et produit un dossier versionnable en Markdown et JSON. Il signale les preuves absentes, périmées ou impossibles à vérifier.
+Build a portable skill for AI agents that helps an SME selling Node.js software
+installed on its customers' premises prepare a technical evidence file for the
+European Cyber Resilience Act.
 
-Le produit ne certifie jamais la conformité, ne remplace pas un conseil juridique et ne décide pas seul si le CRA s'applique. Il prépare des éléments techniques pouvant être examinés par les responsables produit, sécurité et conformité de la PME.
+The skill analyses a repository, collects the verifiable material already
+present, runs deterministic checks, generates or imports a CycloneDX SBOM, and
+produces a versionable file set in Markdown and JSON. It flags evidence that is
+absent, out of date or impossible to verify.
 
-## 2. Décisions déjà prises
+The product never certifies compliance, does not replace legal advice, and does
+not decide on its own whether the CRA applies. It prepares technical material
+that the SME's product, security and compliance owners can review.
 
-- Format : skill portable compatible avec plusieurs agents.
-- Architecture : instructions dans `SKILL.md` et scripts déterministes Node.js.
-- Utilisateur initial : PME commercialisant un logiciel.
-- Produit initial : logiciel Node.js distribué et installé chez le client.
-- Hébergement initial : aucun service distant obligatoire.
-- Sorties : fichiers Markdown et JSON versionnables dans Git.
-- Langue du skill : anglais pour maximiser la portabilité ; documentation utilisateur disponible en anglais, puis en français.
-- Attitude réglementaire : assistance technique fondée sur des sources, jamais certification ou avis juridique.
+## 2. Decisions already taken
 
-## 3. Problème utilisateur
+- Format: a portable skill compatible with several agents.
+- Architecture: instructions in `SKILL.md` and deterministic Node.js scripts.
+- First user: an SME selling software.
+- First product: Node.js software distributed and installed at the customer.
+- First hosting model: no remote service required.
+- Outputs: Markdown and JSON files, versionable in Git.
+- Skill language: English, to maximise portability; user documentation in
+  English first, then French.
+- Regulatory stance: technical assistance grounded in sources, never
+  certification and never a legal opinion.
 
-Une petite entreprise utilise généralement plusieurs outils indépendants pour produire un SBOM, suivre ses dépendances, documenter ses vulnérabilités, prouver ses tests et décrire ses releases. Les preuves restent dispersées entre le dépôt, la CI, les registries, les tickets et les documents internes.
+## 3. User problem
 
-Le responsable technique ne sait pas facilement :
+A small company typically uses several independent tools to produce an SBOM,
+track its dependencies, document its vulnerabilities, evidence its tests and
+describe its releases. The evidence stays scattered across the repository, the
+CI, the registries, the issue tracker and internal documents.
 
-- quelles preuves existent déjà ;
-- quelles preuves sont actuelles ;
-- comment une preuve a été produite ;
-- quelle exigence ou pratique elle cherche à documenter ;
-- quelles lacunes doivent être traitées en priorité ;
-- comment reproduire le même dossier lors de la release suivante.
+The technical lead cannot easily tell:
 
-Le skill doit transformer cet état dispersé en un dossier explicable et reproductible.
+- which evidence already exists;
+- which evidence is current;
+- how a piece of evidence was produced;
+- which requirement or practice it is meant to document;
+- which gaps should be addressed first;
+- how to reproduce the same file set at the next release.
 
-## 4. Proposition de valeur
+The skill has to turn that scattered state into an explainable, reproducible
+file set.
 
-> Analyze a commercial Node.js product repository and produce a reproducible, source-linked CRA technical evidence pack without claiming legal compliance.
+## 4. Value proposition
 
-La valeur ne vient pas d'un résumé produit par un LLM. Elle vient de la traçabilité : chaque constat doit indiquer la source, la commande, la date, le commit, le résultat et les limites de la vérification.
+> Analyze a commercial Node.js product repository and produce a reproducible,
+> source-linked CRA technical evidence pack without claiming legal compliance.
 
-## 5. Périmètre du MVP
+The value does not come from an LLM-written summary. It comes from
+traceability: every finding must state its source, the command, the date, the
+commit, the result and the limits of the verification.
 
-### Inclus
+## 5. MVP scope
 
-- Dépôts Git contenant un produit Node.js.
-- `npm`, avec un `package-lock.json` obligatoire pour le chemin nominal.
-- Dépôts simples et workspaces npm basiques.
-- Exécution locale sur macOS et Linux.
-- CI de référence : GitHub Actions.
-- Collecte de métadonnées Git et package npm.
-- Inventaire des dépendances directes et transitives.
-- Génération ou import d'un SBOM CycloneDX JSON.
-- Détection des documents et pratiques de sécurité observables.
-- Collecte de preuves de tests, builds et releases.
-- Rapport de lacunes avec états normalisés.
-- Export d'un pack Markdown/JSON dans un dossier choisi par l'utilisateur.
-- Mode hors ligne lorsque toutes les dépendances nécessaires sont déjà installées.
-- Redaction des secrets et exclusion explicite des fichiers sensibles.
+### In scope
 
-### Exclus du MVP
+- Git repositories containing a Node.js product.
+- `npm`, with a mandatory `package-lock.json` on the nominal path.
+- Simple repositories and basic npm workspaces.
+- Local execution on macOS and Linux.
+- Reference CI: GitHub Actions.
+- Collection of Git and npm package metadata.
+- Inventory of direct and transitive dependencies.
+- Generation or import of a CycloneDX JSON SBOM.
+- Detection of observable security documents and practices.
+- Collection of test, build and release evidence.
+- A gap report with normalised states.
+- Export of a Markdown/JSON pack into a directory chosen by the user.
+- Offline mode when every needed dependency is already installed.
+- Secret redaction and explicit exclusion of sensitive files.
 
-- SaaS pur et analyse détaillée des solutions de traitement de données à distance.
-- Produits embarqués, firmware, mobile ou IoT.
-- Python, Java, Rust et autres écosystèmes.
-- Certification, marquage CE ou génération d'une déclaration UE de conformité.
-- Détermination juridique automatique du rôle de fabricant, importateur, distributeur ou steward.
-- Soumission d'un incident à une autorité.
-- Portail web, comptes utilisateurs, base de données ou service cloud.
-- Analyse dynamique complète de la sécurité du produit.
-- Correction automatique du code ou des politiques de sécurité.
-- Garantie qu'une preuve satisfait juridiquement une exigence.
+### Out of MVP scope
 
-## 6. Utilisation prévue
+- Pure SaaS and detailed analysis of remote data processing solutions.
+- Embedded, firmware, mobile and IoT products.
+- Python, Java, Rust and other ecosystems.
+- Certification, CE marking, or generating an EU declaration of conformity.
+- Automatic legal determination of the manufacturer, importer, distributor or
+  steward role.
+- Submitting an incident to an authority.
+- A web portal, user accounts, a database or a cloud service.
+- Full dynamic security analysis of the product.
+- Automatic remediation of code or security policies.
+- Any guarantee that a piece of evidence legally satisfies a requirement.
 
-### Scénario principal
+## 6. Intended use
 
-1. Un utilisateur demande à son agent d'exécuter le skill sur le dépôt courant.
-2. Le skill affiche son périmètre, ses limites et les données qu'il va lire.
-3. L'agent demande confirmation avant toute commande qui installe des dépendances, accède au réseau ou écrit dans le dépôt.
-4. Les scripts inspectent le dépôt et produisent un inventaire brut.
-5. Le skill demande uniquement les informations produit impossibles à déduire, par exemple le nom commercial ou la politique de support.
-6. Les scripts exécutent les contrôles autorisés et collectent les preuves.
-7. Le moteur classe chaque contrôle avec un état normalisé.
-8. Le renderer génère le pack dans `cra-evidence/` par défaut.
-9. L'agent résume les lacunes prioritaires et les limites de l'analyse.
+### Main scenario
 
-### Réexécution
+1. A user asks their agent to run the skill on the current repository.
+2. The skill states its scope, its limits and the data it is about to read.
+3. The agent asks for confirmation before any command that installs
+   dependencies, accesses the network or writes into the repository.
+4. The scripts inspect the repository and produce a raw inventory.
+5. The skill asks only for the product information that cannot be inferred, for
+   example the commercial name or the support policy.
+6. The scripts run the authorised checks and collect the evidence.
+7. The engine classifies each check with a normalised state.
+8. The renderer generates the pack in `cra-evidence/` by default.
+9. The agent summarises the priority gaps and the limits of the analysis.
 
-Une réexécution sur le même commit avec le même environnement doit produire un contenu déterministe, à l'exception des champs explicitement temporels. Une réexécution après modification doit indiquer quelles preuves sont devenues périmées ou ont changé.
+### Re-running
 
-## 7. Contrat de portabilité
+Re-running on the same commit in the same environment must produce
+deterministic content, except for fields that are explicitly time-based.
+Re-running after a change must state which evidence has become stale or has
+changed.
 
-Le skill ne doit dépendre d'aucune API propriétaire d'agent.
+## 7. Portability contract
 
-Le plus petit dénominateur commun sera :
+The skill must not depend on any proprietary agent API.
 
-- un fichier racine `SKILL.md` décrivant quand et comment utiliser le skill ;
-- des commandes Node.js exécutables depuis un shell ;
-- des entrées et sorties sur le système de fichiers ;
-- des sorties machine en JSON et humaines en Markdown ;
-- aucune dépendance à un serveur MCP ;
-- aucune hypothèse sur le nom d'un outil agentique particulier ;
-- des demandes de confirmation décrites dans le workflow plutôt qu'encodées dans une API d'agent.
+The lowest common denominator is:
 
-Des adaptateurs propres à certains agents pourront être ajoutés plus tard, sans modifier le noyau.
+- a root `SKILL.md` describing when and how to use the skill;
+- Node.js commands runnable from a shell;
+- filesystem inputs and outputs;
+- machine-readable output in JSON and human-readable output in Markdown;
+- no dependency on an MCP server;
+- no assumption about the name of any particular agent tool;
+- confirmation prompts described in the workflow rather than encoded in an
+  agent API.
 
-## 8. Structure cible du futur dépôt
+Agent-specific adapters may be added later without changing the core.
+
+## 8. Target repository structure
 
 ```text
 cra-evidence-skill/
@@ -155,97 +185,104 @@ cra-evidence-skill/
 └── PLAN.md
 ```
 
-Ne pas créer tous les fichiers dès le premier commit. L'arborescence décrit les frontières finales ; chaque phase ne doit ajouter que les éléments nécessaires.
+Do not create every file in the first commit. The tree describes the final
+boundaries; each phase should add only what it needs.
 
-## 9. Architecture fonctionnelle
+## 9. Functional architecture
 
-### 9.1 Orchestrateur du skill
+### 9.1 Skill orchestrator
 
-Responsabilité : guider l'agent et l'utilisateur dans le bon ordre.
+Responsibility: guide the agent and the user through the right order.
 
-Il doit :
+It must:
 
-- expliquer les limites avant l'analyse ;
-- distinguer lecture locale, écriture et accès réseau ;
-- demander les confirmations nécessaires ;
-- exécuter les scripts dans un ordre défini ;
-- ne jamais inventer une preuve manquante ;
-- présenter séparément faits observés, informations déclarées et interprétations.
+- explain the limits before the analysis;
+- distinguish local reads, writes and network access;
+- ask for the confirmations it needs;
+- run the scripts in a defined order;
+- never invent missing evidence;
+- present observed facts, declared information and interpretations separately.
 
-### 9.2 Inspecteur de dépôt
+### 9.2 Repository inspector
 
-Responsabilité : produire un inventaire factuel sans décider de la conformité.
+Responsibility: produce a factual inventory without deciding on compliance.
 
-Données inspectées :
+Data inspected:
 
-- commit, branche et état Git ;
-- `package.json`, lockfile et workspaces ;
-- scripts npm disponibles ;
-- fichiers de CI ;
-- fichiers `README`, `SECURITY`, `LICENSE`, `CHANGELOG` et contribution ;
-- configuration de tests et de build ;
-- mécanismes de release détectables ;
-- configuration Dependabot ou Renovate ;
-- signatures, attestations ou provenance visibles ;
-- éventuels SBOM et fichiers VEX existants.
+- commit, branch and Git state;
+- `package.json`, lockfile and workspaces;
+- available npm scripts;
+- CI files;
+- `README`, `SECURITY`, `LICENSE`, `CHANGELOG` and contribution files;
+- test and build configuration;
+- detectable release mechanisms;
+- Dependabot or Renovate configuration;
+- visible signatures, attestations or provenance;
+- any existing SBOM and VEX files.
 
-### 9.3 Générateur et validateur de SBOM
+### 9.3 SBOM generator and validator
 
-Responsabilité : obtenir un SBOM CycloneDX JSON reproductible et documenter sa provenance.
+Responsibility: obtain a reproducible CycloneDX JSON SBOM and document its
+provenance.
 
-Le composant doit :
+The component must:
 
-- préférer un SBOM existant et valide lorsqu'il correspond au commit analysé ;
-- sinon utiliser un générateur CycloneDX Node.js épinglé par le lockfile du skill ;
-- enregistrer la version de l'outil et du schéma ;
-- conserver les erreurs plutôt que produire un SBOM partiel présenté comme complet ;
-- distinguer dépendances de production, développement et optionnelles ;
-- signaler les dépendances sans version résolue ou provenance claire.
+- prefer an existing, valid SBOM when it matches the analysed commit;
+- otherwise use a CycloneDX Node.js generator pinned by the skill's own
+  lockfile;
+- record the tool version and the schema version;
+- keep errors rather than produce a partial SBOM presented as complete;
+- distinguish production, development and optional dependencies;
+- flag dependencies with no resolved version or no clear provenance.
 
-### 9.4 Collecteur de preuves
+### 9.4 Evidence collector
 
-Responsabilité : convertir une observation ou une commande en enregistrement traçable.
+Responsibility: turn an observation or a command into a traceable record.
 
-Chaque preuve contient au minimum :
+Each piece of evidence contains at least:
 
-- identifiant stable ;
-- type de preuve ;
-- source ou chemin ;
-- commande exécutée, le cas échéant ;
-- commit analysé ;
-- horodatage ;
-- empreinte du fichier ou de la sortie ;
-- résultat ;
-- limites ;
-- indicateur de sensibilité ;
-- statut de redaction.
+- a stable identifier;
+- an evidence type;
+- a source or path;
+- the command that was run, where applicable;
+- the analysed commit;
+- a timestamp;
+- the digest of the file or of the output;
+- the result;
+- the limits;
+- a sensitivity indicator;
+- a redaction status.
 
-### 9.5 Moteur de règles
+### 9.5 Rules engine
 
-Responsabilité : comparer les preuves aux contrôles techniques versionnés.
+Responsibility: compare the evidence against versioned technical controls.
 
-États autorisés :
+Allowed states:
 
-- `verified` : preuve observée et vérification réussie ;
-- `declared` : information fournie par l'utilisateur mais non vérifiable automatiquement ;
-- `partial` : preuve présente mais incomplète ou de portée insuffisante ;
-- `missing` : aucune preuve trouvée ;
-- `stale` : preuve ne correspondant pas au commit ou à la version analysée ;
-- `not_applicable` : exclusion justifiée et enregistrée ;
-- `error` : contrôle impossible à exécuter ;
-- `needs_expert_review` : interprétation humaine indispensable.
+- `verified`: evidence observed and the check succeeded;
+- `declared`: information supplied by the user but not automatically
+  verifiable;
+- `partial`: evidence present but incomplete or insufficient in scope;
+- `missing`: no evidence found;
+- `stale`: evidence that does not match the analysed commit or version;
+- `not_applicable`: a justified and recorded exclusion;
+- `error`: the check could not be run;
+- `needs_expert_review`: human interpretation is indispensable.
 
-Le moteur ne doit jamais produire un statut global `compliant` ou `non_compliant`.
+The engine must never produce an overall `compliant` or `non_compliant` status.
 
-Le statut `not_applicable` doit provenir d'une décision humaine documentée. Un contrôle déterministe peut le suggérer, mais ne peut pas l'attribuer seul lorsque la décision dépend d'une interprétation juridique ou du modèle commercial.
+The `not_applicable` state must come from a documented human decision. A
+deterministic check may suggest it, but it cannot assign it on its own when the
+decision depends on a legal interpretation or on the business model.
 
-### 9.6 Renderer du pack
+### 9.6 Pack renderer
 
-Responsabilité : transformer les données structurées en dossier lisible et vérifiable.
+Responsibility: turn structured data into a readable, checkable file set.
 
-Il ne contient aucune logique réglementaire. Il affiche uniquement les résultats du moteur, les sources et les limites.
+It contains no regulatory logic. It displays only the engine's results, the
+sources and the limits.
 
-## 10. Sorties du skill
+## 10. Skill outputs
 
 ```text
 cra-evidence/
@@ -263,45 +300,53 @@ cra-evidence/
     └── command-results/
 ```
 
-### Règles de sortie
+### Output rules
 
-- `README.md` explique comment le pack a été créé et comment le reproduire.
-- `product-profile.md` distingue les faits détectés des déclarations de l'utilisateur.
-- `executive-summary.md` ne contient aucune affirmation juridique définitive.
-- `evidence-index.md` relie contrôles, preuves et lacunes.
-- `gaps.md` priorise les actions sans présenter d'obligation juridique non sourcée.
-- `limitations.md` décrit toutes les parties non vérifiées.
-- `assessment.json` est la source structurée principale du rendu.
-- `evidence-manifest.json` permet de vérifier la fraîcheur et l'intégrité des preuves.
-- `source-register.json` enregistre les sources officielles, leur date de consultation et la version des règles.
-- `raw/` exclut par défaut les logs pouvant contenir des secrets ; seules les sorties nettoyées y sont écrites.
-- Un pack existant n'est jamais écrasé silencieusement : la commande échoue ou crée une exécution explicitement nommée.
-- L'écriture est atomique : génération dans un dossier temporaire, validation, puis déplacement vers la destination finale.
+- `README.md` explains how the pack was created and how to reproduce it.
+- `product-profile.md` distinguishes detected facts from user declarations.
+- `executive-summary.md` contains no definitive legal statement.
+- `evidence-index.md` links controls, evidence and gaps.
+- `gaps.md` prioritises actions without presenting an unsourced legal
+  obligation.
+- `assessment.json` is the primary structured source of the rendering.
+- `evidence-manifest.json` makes evidence freshness and integrity checkable.
+- `source-register.json` records the official sources, their access dates and
+  the ruleset version.
+- `raw/` excludes by default any log that could contain secrets; only cleaned
+  output is written there.
+- An existing pack is never silently overwritten: the command either fails or
+  creates an explicitly named run.
+- Writing is atomic: generate into a temporary directory, validate, then move
+  to the final destination.
 
-## 11. Familles de contrôles du MVP
+## 11. MVP control families
 
-Les règles précises devront être validées pendant l'implémentation à partir du texte officiel et des orientations en vigueur. Le MVP doit au minimum organiser les preuves selon les familles suivantes :
+The precise rules will have to be validated during implementation against the
+official text and the guidance in force. At a minimum the MVP must organise the
+evidence along the following families:
 
-1. Identification du produit et de la version.
-2. Description du périmètre logiciel livré.
-3. Inventaire des composants et SBOM.
-4. Politique de réception et de traitement des vulnérabilités.
-5. Canal de signalement de sécurité.
-6. Suivi des vulnérabilités connues dans les dépendances.
-7. Tests et contrôles de sécurité observables dans la CI.
-8. Procédure de build et reproductibilité documentée.
-9. Intégrité, signature ou provenance des releases lorsqu'elles existent.
-10. Politique de mises à jour et période de support déclarée.
-11. Documentation d'installation et de configuration sécurisée.
-12. Journal des changements et traçabilité des versions.
-13. Processus d'incident et de divulgation, à faire examiner par un expert.
-14. Conservation des preuves et capacité à régénérer le pack.
+1. Product and version identification.
+2. Description of the delivered software scope.
+3. Component inventory and SBOM.
+4. Vulnerability intake and handling policy.
+5. Security reporting channel.
+6. Tracking of known vulnerabilities in dependencies.
+7. Tests and security checks observable in CI.
+8. Documented build procedure and reproducibility.
+9. Release integrity, signing or provenance, where they exist.
+10. Update policy and declared support period.
+11. Secure installation and configuration documentation.
+12. Change log and version traceability.
+13. Incident and disclosure process, to be reviewed by an expert.
+14. Evidence retention and the ability to regenerate the pack.
 
-Une famille de contrôle n'est pas une traduction automatique d'une obligation. Chaque règle doit référencer une source officielle, sa version, son champ d'application et la raison technique de son inclusion.
+A control family is not an automatic translation of an obligation. Each rule
+must reference an official source, its version, its scope of application and
+the technical reason for its inclusion.
 
-## 12. Modèle de règle
+## 12. Rule model
 
-Chaque règle versionnée doit inclure :
+Every versioned rule must include:
 
 ```json
 {
@@ -318,58 +363,67 @@ Chaque règle versionnée doit inclure :
 }
 ```
 
-Le texte réglementaire complet ne doit pas être copié dans les règles. Utiliser des références précises et un résumé technique original.
+The full regulatory text must not be copied into the rules. Use precise
+references and an original technical summary.
 
-## 13. Sources réglementaires et techniques
+## 13. Regulatory and technical sources
 
-La première phase d'implémentation doit verrouiller un registre de sources daté. Priorité :
+The first implementation phase must lock down a dated source register.
+Priority:
 
-1. Règlement (UE) 2024/2847 sur EUR-Lex.
-2. Pages de mise en œuvre, FAQ et orientations de la Commission européenne.
-3. Publications ENISA pertinentes aux mécanismes opérationnels.
-4. OSPS Baseline de l'OpenSSF, utilisée comme référentiel technique complémentaire et non comme équivalent juridique du CRA.
-5. Standards CycloneDX et SPDX pour les SBOM.
-6. Documentation officielle npm et GitHub Actions pour les preuves techniques.
+1. Regulation (EU) 2024/2847 on EUR-Lex.
+2. European Commission implementation pages, FAQ and guidance.
+3. ENISA publications relevant to the operational mechanisms.
+4. The OpenSSF OSPS Baseline, used as a complementary technical framework and
+   not as a legal equivalent of the CRA.
+5. The CycloneDX and SPDX SBOM standards.
+6. Official npm and GitHub Actions documentation for the technical evidence.
 
-Sources de départ :
+Starting sources:
 
-- Règlement : https://eur-lex.europa.eu/eli/reg/2024/2847/oj
-- Résumé de la Commission : https://digital-strategy.ec.europa.eu/en/policies/cra-summary
-- Mise en œuvre : https://digital-strategy.ec.europa.eu/en/factpages/cyber-resilience-act-implementation
-- OSPS Baseline : https://baseline.openssf.org/
-- CycloneDX : https://cyclonedx.org/
+- Regulation: https://eur-lex.europa.eu/eli/reg/2024/2847/oj
+- Commission summary: https://digital-strategy.ec.europa.eu/en/policies/cra-summary
+- Implementation: https://digital-strategy.ec.europa.eu/en/factpages/cyber-resilience-act-implementation
+- OSPS Baseline: https://baseline.openssf.org/
+- CycloneDX: https://cyclonedx.org/
 
-Le registre doit contenir URL canonique, éditeur, titre, date de publication ou mise à jour, date d'accès, juridiction, statut et empreinte lorsque le document est téléchargé.
+The register must record the canonical URL, the publisher, the title, the
+publication or update date, the access date, the jurisdiction, the status and,
+where the document is downloaded, its digest.
 
-## 14. Sécurité et confidentialité
+## 14. Security and confidentiality
 
-### Menaces principales
+### Main threats
 
-- Exfiltration accidentelle de secrets contenus dans les fichiers ou logs.
-- Exécution de scripts npm malveillants lors de l'installation.
-- Instructions malveillantes présentes dans le dépôt et lues par l'agent.
-- Dépendances compromises dans le skill lui-même.
-- Résultat réglementaire trompeur ou trop affirmatif.
-- Pack contenant des chemins locaux, identifiants ou informations internes.
-- Utilisation d'une preuve ancienne pour une nouvelle release.
+- Accidental exfiltration of secrets contained in files or logs.
+- Execution of malicious npm scripts during installation.
+- Malicious instructions present in the repository and read by the agent.
+- Compromised dependencies in the skill itself.
+- A misleading or overconfident regulatory result.
+- A pack containing local paths, credentials or internal information.
+- Use of old evidence for a new release.
 
-### Mesures obligatoires
+### Mandatory measures
 
-- Inspection statique avant toute installation.
-- Aucune exécution de `npm install`, `npm test` ou `npm run build` sans confirmation.
-- Option `--no-network` et réseau désactivé par défaut après acquisition autorisée des dépendances.
-- Liste explicite de chemins exclus : `.env*`, clés, credentials, répertoires utilisateurs et caches d'agents.
-- Résolution et contrôle des liens symboliques afin d'empêcher une lecture en dehors du dépôt autorisé.
-- Redaction avant écriture de toute sortie brute.
-- Dépendances du skill minimales, épinglées et auditées.
-- Hash de chaque preuve incluse.
-- Refus de suivre les instructions contenues dans le dépôt lorsqu'elles ne font pas partie du workflow du skill.
-- Affichage permanent de la version du ruleset.
-- Aucune conclusion juridique globale.
+- Static inspection before any installation.
+- No `npm install`, `npm test` or `npm run build` without confirmation.
+- A `--no-network` option, and the network disabled by default once the
+  authorised dependency acquisition is done.
+- An explicit list of excluded paths: `.env*`, keys, credentials, user
+  directories and agent caches.
+- Symlink resolution and checking, to prevent reads outside the authorised
+  repository.
+- Redaction before any raw output is written.
+- Minimal, pinned and audited dependencies for the skill.
+- A digest for every included piece of evidence.
+- Refusal to follow instructions contained in the repository when they are not
+  part of the skill's workflow.
+- Permanent display of the ruleset version.
+- No overall legal conclusion.
 
-## 15. Interface CLI cible
+## 15. Target CLI
 
-L'interface exacte pourra évoluer, mais le workflow doit rester simple :
+The exact interface may evolve, but the workflow must stay simple:
 
 ```text
 cra-evidence inspect [path]
@@ -380,248 +434,272 @@ cra-evidence run [path] --output cra-evidence/
 cra-evidence verify-pack cra-evidence/
 ```
 
-Principes :
+Principles:
+
+- `inspect` is strictly read-only and runs no project script.
+- `collect` announces every potentially active command.
+- `evaluate` works only on structured evidence.
+- `render` is deterministic and offline.
+- `run` orchestrates the steps but honours the confirmations.
+- `verify-pack` checks schemas, digests, freshness and internal consistency.
+- Every error is kept in structured form with the step, the cause, the affected
+  scope and a suggested action; it is never turned into a success or into a
+  plain absence of evidence.
 
-- `inspect` est strictement en lecture et n'exécute aucun script du projet.
-- `collect` annonce chaque commande potentiellement active.
-- `evaluate` travaille uniquement sur les preuves structurées.
-- `render` est déterministe et sans réseau.
-- `run` orchestre les étapes mais respecte les confirmations.
-- `verify-pack` vérifie schémas, empreintes, fraîcheur et cohérence interne.
-- Toute erreur est conservée sous forme structurée avec étape, cause, portée affectée et action suggérée ; elle n'est jamais transformée en réussite ou en simple absence de preuve.
+Every command must offer `--json`, documented exit codes, and an error an agent
+can act on.
 
-Chaque commande doit proposer `--json`, des codes de sortie documentés et une erreur exploitable par un agent.
+## 16. Test strategy
 
-## 16. Stratégie de test
+### Unit tests
 
-### Tests unitaires
+- Parsing of `package.json` and the lockfile.
+- Detection of scripts and workspaces.
+- Evidence normalisation.
+- Secret redaction.
+- Evaluation of every control state.
+- Deterministic rendering.
+- JSON schema validation.
 
-- Parsing de `package.json` et lockfile.
-- Détection des scripts et workspaces.
-- Normalisation des preuves.
-- Redaction des secrets.
-- Évaluation de chaque état de contrôle.
-- Rendu déterministe.
-- Validation des schémas JSON.
+### Integration fixtures
 
-### Fixtures d'intégration
+Create at least four synthetic repositories:
 
-Créer au minimum quatre dépôts synthétiques :
+1. `minimal-unprepared`: a simple package with no security documentation.
+2. `partially-prepared`: tests and Dependabot, but no SBOM and no support
+   period.
+3. `well-evidenced`: SBOM, security policy, CI, releases and documentation.
+4. `hostile-repository`: fake secrets, dangerous npm scripts and prompt
+   injection instructions.
 
-1. `minimal-unprepared` : package simple sans documentation sécurité.
-2. `partially-prepared` : tests et Dependabot, mais absence de SBOM et support period.
-3. `well-evidenced` : SBOM, politique sécurité, CI, release et documentation.
-4. `hostile-repository` : faux secrets, scripts npm dangereux et instructions de prompt injection.
+### End-to-end tests
 
-### Tests de bout en bout
+- Offline execution against each fixture.
+- Two identical runs produce the same non-temporal data.
+- A change of commit invalidates the dependent evidence.
+- No canary secret appears in the pack.
+- An SBOM error stays visible and never becomes a silent partial success.
+- The skill works from at least two different agents before version 0.1.
 
-- Exécution hors ligne sur chaque fixture.
-- Deux exécutions identiques produisent les mêmes données non temporelles.
-- Une modification du commit invalide les preuves dépendantes.
-- Aucun secret canari n'apparaît dans le pack.
-- Une erreur de SBOM reste visible et ne devient jamais un succès partiel silencieux.
-- Le skill fonctionne depuis au moins deux agents différents avant la version 0.1.
+## 17. MVP acceptance criteria
 
-## 17. Critères d'acceptation du MVP
+The MVP is done when:
 
-Le MVP est terminé lorsque :
+- a compatible agent can discover and apply `SKILL.md` without adapting the
+  core;
+- a Node.js repository with a lockfile can be analysed offline;
+- the skill generates a CycloneDX SBOM or explains precisely why it cannot;
+- every finding in the report points to a piece of evidence or carries the
+  state `declared`, `missing`, `error` or `needs_expert_review`;
+- the pack contains the commit, the ruleset and the tool versions;
+- `verify-pack` detects modified or stale evidence;
+- no canary secret from the fixtures ends up in the output;
+- the four fixtures give the expected results;
+- no output uses the words "certified", "legally compliant" or an equivalent as
+  a conclusion;
+- the documentation explains the limits and the need for legal and security
+  review;
+- an SME pilot can understand the five priority gaps without help from the
+  skill's maintainer.
 
-- un agent compatible peut découvrir et appliquer le `SKILL.md` sans adaptation du noyau ;
-- un dépôt Node.js avec lockfile peut être analysé sans réseau ;
-- le skill génère un SBOM CycloneDX ou explique précisément pourquoi il ne peut pas le faire ;
-- chaque constat du rapport pointe vers une preuve ou porte l'état `declared`, `missing`, `error` ou `needs_expert_review` ;
-- le pack contient le commit, le ruleset et les versions des outils ;
-- `verify-pack` détecte une preuve modifiée ou périmée ;
-- aucun secret canari des fixtures ne se retrouve dans les sorties ;
-- les quatre fixtures donnent les résultats attendus ;
-- aucune sortie n'utilise les termes « certified », « legally compliant » ou équivalent comme conclusion ;
-- la documentation explique les limites et le besoin de revue juridique/sécurité ;
-- un pilote PME peut comprendre les cinq lacunes prioritaires sans assistance du mainteneur du skill.
+## 18. Implementation plan
 
-## 18. Plan d'implémentation
+### Phase 0 - lock down the regulatory scope and the sources
 
-### Phase 0 - verrouiller le périmètre réglementaire et les sources
+Goal: stop the code from being built on outdated summaries.
 
-Objectif : empêcher que le code soit construit sur des résumés obsolètes.
+- Re-read the official sources in force on the day of implementation.
+- Create `rules/sources.json` with metadata and access dates.
+- Define a ruleset update policy.
+- Have the terminology and the disclaimer reviewed by a competent person.
+- Write the first control families without automation.
 
-- Relire les sources officielles en vigueur au jour de l'implémentation.
-- Créer `rules/sources.json` avec métadonnées et dates d'accès.
-- Définir une politique de mise à jour du ruleset.
-- Faire examiner la terminologie et le disclaimer par une personne compétente.
-- Écrire les premières familles de contrôles sans automatisation.
+Output: a source register and reviewed candidate rules.
 
-Sortie : registre des sources et règles candidates revues.
+### Phase 1 - portable skeleton and execution protocol
 
-### Phase 1 - squelette portable et protocole d'exécution
+Goal: prove that the same skill works with several agents.
 
-Objectif : prouver qu'un même skill fonctionne avec plusieurs agents.
+- Write a minimal, vendor-neutral `SKILL.md`.
+- Define the inputs, outputs, confirmations and errors.
+- Create the Node.js CLI with `inspect` and `--json`.
+- Manually test discovery from Claude Code and from a second agent.
+- Document the integration differences without introducing them into the core.
 
-- Écrire un `SKILL.md` minimal et indépendant du fournisseur.
-- Définir les entrées, sorties, confirmations et erreurs.
-- Créer le CLI Node.js avec `inspect` et `--json`.
-- Tester manuellement la découverte depuis Claude Code et un second agent.
-- Documenter les différences d'intégration sans les introduire dans le noyau.
+Output: a runnable skill able to inventory a repository with no active action.
 
-Sortie : skill exécutable capable d'inventorier un dépôt sans action active.
+### Phase 2 - deterministic Node.js inventory
 
-### Phase 2 - inventaire Node.js déterministe
+Goal: produce a reliable model of the repository.
 
-Objectif : produire un modèle fiable du dépôt.
+- Parse the package, the lockfile, the scripts and the workspaces.
+- Collect the Git metadata.
+- Detect CI, security, tests, builds and releases.
+- Write `product-profile.json` and the raw inventory.
+- Add fixtures and unit tests.
 
-- Parser package, lockfile, scripts et workspaces.
-- Relever les métadonnées Git.
-- Détecter CI, sécurité, tests, builds et releases.
-- Écrire `product-profile.json` et l'inventaire brut.
-- Ajouter fixtures et tests unitaires.
+Output: a structured inventory validated against a schema.
 
-Sortie : inventaire structuré validé par schéma.
+### Phase 3 - SBOM and evidence manifest
 
-### Phase 3 - SBOM et manifeste de preuves
+Goal: produce the two fundamental technical artefacts.
 
-Objectif : produire les deux artefacts techniques fondamentaux.
+- Integrate a pinned CycloneDX generator.
+- Validate an existing SBOM before reusing it.
+- Record versions, commands, digests and limits.
+- Design `evidence-manifest.json`.
+- Implement redaction before persistence.
 
-- Intégrer un générateur CycloneDX épinglé.
-- Valider un SBOM existant avant de le réutiliser.
-- Enregistrer versions, commandes, hashes et limites.
-- Concevoir `evidence-manifest.json`.
-- Implémenter la redaction avant persistance.
+Output: a verifiable SBOM and structured evidence.
 
-Sortie : SBOM et preuves structurées vérifiables.
+### Phase 4 - rules engine
 
-### Phase 4 - moteur de règles
+Goal: turn evidence into explainable states.
 
-Objectif : transformer les preuves en états explicables.
+- Implement the rule schema.
+- Limit the first ruleset to about 12 high-value controls.
+- Separate deterministic evaluation from human review.
+- Link every result to its sources and evidence.
+- Test every possible state.
 
-- Implémenter le schéma des règles.
-- Limiter le premier ruleset à environ 12 contrôles à forte valeur.
-- Séparer évaluation déterministe et revue humaine.
-- Lier chaque résultat aux sources et preuves.
-- Tester tous les états possibles.
+Output: an `assessment.json` with no overall compliance conclusion.
 
-Sortie : `assessment.json` sans conclusion globale de conformité.
+### Phase 5 - pack generation and verification
 
-### Phase 5 - génération et vérification du pack
+Goal: create the deliverable an SME can use.
 
-Objectif : créer le livrable utilisable par une PME.
+- Generate the Markdown documents from the JSON data.
+- Produce a factual executive summary.
+- Rank the gaps by technical priority and estimated effort.
+- Implement `verify-pack`.
+- Test output stability and freshness detection.
 
-- Générer les documents Markdown à partir des données JSON.
-- Produire un résumé exécutif factuel.
-- Classer les lacunes par priorité technique et effort estimé.
-- Implémenter `verify-pack`.
-- Tester la stabilité des sorties et la détection de fraîcheur.
+Output: a complete, reproducible `cra-evidence/` directory.
 
-Sortie : dossier `cra-evidence/` complet et reproductible.
+### Phase 6 - adversarial security and robustness
 
-### Phase 6 - sécurité adversariale et robustesse
+Goal: make the tool safe against an untrusted repository.
 
-Objectif : rendre l'outil sûr face à un dépôt non fiable.
+- Finalise the hostile fixture.
+- Test secrets, prompt injection, npm scripts and unexpected paths.
+- Verify the behaviour with no network.
+- Add limits on size, duration and log volume.
+- Write the threat model and the security policy.
 
-- Finaliser la fixture hostile.
-- Tester secrets, prompt injection, scripts npm et chemins inattendus.
-- Vérifier les comportements sans réseau.
-- Ajouter limites de taille, durée et quantité de logs.
-- Rédiger le threat model et la politique de sécurité.
+Output: documented guarantees and automated adversarial tests.
 
-Sortie : garanties documentées et tests adversariaux automatisés.
+### Phase 7 - pilot and version 0.1
 
-### Phase 7 - pilote et version 0.1
+Goal: verify the real value before widening the scope.
 
-Objectif : vérifier la valeur réelle avant d'élargir le périmètre.
+- Test against three representative open-source Node.js repositories.
+- Run a pilot with a willing SME on a private repository, executed locally.
+- Collect false positives, missing evidence and misunderstandings.
+- Correct the ruleset and the documentation.
+- Publish version 0.1 with a changelog and versioned rules.
 
-- Tester sur trois dépôts Node.js open source représentatifs.
-- Conduire un pilote avec une PME volontaire sur un dépôt privé, exécuté localement.
-- Recueillir faux positifs, preuves manquantes et incompréhensions.
-- Corriger le ruleset et la documentation.
-- Publier la version 0.1 avec changelog et règles versionnées.
+Output: a first public version and documented user feedback.
 
-Sortie : première version publique et retour utilisateur documenté.
+## 19. Order of priority
 
-## 19. Ordre de priorité
+Absolute priority:
 
-Priorité absolue :
+1. Evidence provenance and freshness.
+2. Protection of secrets.
+3. Absence of a misleading legal conclusion.
+4. Deterministic checks.
+5. Portability across agents.
+6. Clarity of the gaps.
 
-1. Provenance et fraîcheur des preuves.
-2. Protection des secrets.
-3. Absence de conclusion juridique trompeuse.
-4. Déterminisme des contrôles.
-5. Portabilité entre agents.
-6. Clarté des lacunes.
+To be deferred until after the MVP:
 
-À reporter après le MVP :
+- a graphical interface;
+- other package managers;
+- advanced VEX;
+- a GitHub App integration;
+- automatic publication of attestations;
+- sector-specific plugins;
+- SaaS and connected devices;
+- an overall score.
 
-- interface graphique ;
-- autres gestionnaires de paquets ;
-- VEX avancé ;
-- intégration GitHub App ;
-- publication automatique d'attestations ;
-- plugins sectoriels ;
-- SaaS et objets connectés ;
-- scoring global.
+## 20. Project risks
 
-## 20. Risques projet
+### Drifting into a legal tool
 
-### Dérive vers un outil juridique
+Response: separate sources, evidence and interpretations; require
+`needs_expert_review` for scope decisions.
 
-Réponse : séparer sources, preuves et interprétations ; imposer `needs_expert_review` pour les décisions de périmètre.
+### Rules going out of date quickly
 
-### Règles rapidement obsolètes
+Response: versioned rulesets, access dates, a changelog, and a refusal to mix
+rules from different versions.
 
-Réponse : rulesets versionnés, dates d'accès, changelog et refus de mélanger des règles de versions différentes.
+### Portability that is only theoretical
 
-### Portabilité théorique seulement
+Response: test version 0.1 from at least two agents and keep a CLI core with no
+agent dependency.
 
-Réponse : tester la version 0.1 depuis au moins deux agents et maintenir un noyau CLI sans dépendance agentique.
+### Too many controls for an MVP
 
-### Trop de contrôles pour un MVP
+Response: limit the first ruleset to a dozen well-sourced technical controls.
 
-Réponse : limiter le premier ruleset à une douzaine de contrôles techniques bien sourcés.
+### Dangerous installation of the analysed project
 
-### Installation dangereuse du projet analysé
+Response: static inspection by default; active actions only after consent;
+consider sandboxing in a later phase.
 
-Réponse : inspection statique par défaut ; actions actives uniquement après consentement ; envisager le sandboxing dans une phase ultérieure.
+### A false sense of security
 
-### Faux sentiment de sécurité
+Response: display the limits in every output, forbid an overall compliance
+score, and make verified evidence and declarations visibly distinct.
 
-Réponse : afficher les limites dans chaque sortie, interdire le score de conformité global et faire distinguer preuves vérifiées et déclarations.
+## 21. Deferred questions
 
-## 21. Questions différées
+These decisions must not block the MVP:
 
-Ces décisions ne doivent pas bloquer le MVP :
+- the project's final licence;
+- the public name and the visual identity;
+- pnpm and Yarn support;
+- the cryptographic attestation format;
+- adapters specific to Codex, Claude Code or other agents;
+- PDF or DOCX export;
+- mapping onto other frameworks such as NIS2 or ISO 27001;
+- a possible business model.
 
-- licence définitive du projet ;
-- nom public et identité visuelle ;
-- support de pnpm et Yarn ;
-- format d'attestation cryptographique ;
-- adaptateurs propres à Codex, Claude Code ou d'autres agents ;
-- export PDF ou DOCX ;
-- mapping vers d'autres référentiels comme NIS2 ou ISO 27001 ;
-- modèle économique éventuel.
+## 22. First task recommended to Claude Code
 
-## 22. Première tâche recommandée à Claude Code
+Do not start by generating the whole tree.
 
-Ne pas commencer par générer toute l'arborescence.
+First mission:
 
-Première mission :
+1. Re-read this plan.
+2. Verify the official sources and the terminology as at the resumption date.
+3. Propose an MVP ruleset of 10 to 12 technical controls at most.
+4. For each control, identify the observable evidence, the limit and any need
+   for human review.
+5. Submit that ruleset for validation before writing the CLI.
 
-1. Relire ce plan.
-2. Vérifier les sources officielles et la terminologie à la date de reprise.
-3. Proposer un ruleset MVP de 10 à 12 contrôles techniques maximum.
-4. Identifier pour chaque contrôle la preuve observable, la limite et le besoin éventuel de revue humaine.
-5. Soumettre ce ruleset à validation avant d'écrire le CLI.
+Suggested resumption prompt:
 
-Prompt de reprise suggéré :
+> Read `PLAN.md` completely. Do not implement yet. Verify the current official
+> CRA sources referenced in the plan, then propose the smallest 10-12 control
+> ruleset for the Node.js MVP. For each control, specify its official source,
+> deterministic evidence, possible statuses, limitations, and when expert review
+> is required. Preserve the product boundary: this tool prepares technical
+> evidence and never claims legal compliance.
 
-> Read `PLAN.md` completely. Do not implement yet. Verify the current official CRA sources referenced in the plan, then propose the smallest 10-12 control ruleset for the Node.js MVP. For each control, specify its official source, deterministic evidence, possible statuses, limitations, and when expert review is required. Preserve the product boundary: this tool prepares technical evidence and never claims legal compliance.
+## 23. Definition of success
 
-## 23. Définition du succès
+The project succeeds if a small company can run the skill locally against a
+Node.js release and obtain, in under fifteen minutes, a traceable evidence file
+set that clearly shows:
 
-Le projet réussit si une petite entreprise peut exécuter le skill localement sur une release Node.js et obtenir en moins de quinze minutes un dossier de preuves traçable qui lui montre clairement :
+- what was verified;
+- what was only declared;
+- what is missing;
+- what is stale;
+- what requires human review;
+- how to reproduce the pack.
 
-- ce qui a été vérifié ;
-- ce qui a seulement été déclaré ;
-- ce qui manque ;
-- ce qui est périmé ;
-- ce qui exige une revue humaine ;
-- comment reproduire le pack.
-
-La réussite ne se mesure pas au nombre de contrôles ni à la quantité de texte généré, mais à la qualité, la fraîcheur et l'explicabilité des preuves.
+Success is not measured by the number of controls or by the amount of generated
+text, but by the quality, the freshness and the explainability of the evidence.
