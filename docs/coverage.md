@@ -104,12 +104,12 @@ The structure of the evidence pack follows this Annex, because it is the structu
 | CRA-NODE-061 | P1 | risk-and-documentation | Art.13.4 |
 | CRA-NODE-062 | P1 | risk-and-documentation | Art.31.1, Art.31.2, Art.13.13 |
 | CRA-NODE-070 | P1 | conformity | Art.32.1, Art.28.1, AnnexV.1, AnnexVII.5, AnnexII.6, AnnexVII.7 |
-| CRA-NODE-080 | P0 | incident-reporting | Art.14.1, Art.14.2, Art.14.3, Art.16.1 |
+| CRA-NODE-080 | P0 | incident-reporting | Art.14.1, Art.14.2, Art.14.3, Art.14.4, Art.14.5, Art.14.8, Art.16.1 |
 
 ## Numbers
 
 - 24 controls across 9 families.
-- 57 distinct provisions cited.
+- 60 distinct provisions cited.
 - 282 provisions indexed and citable offline with `probative cite`.
 - 8 of 8 Annex I, Part II points covered.
 - 8 of 8 Annex VII points covered.

@@ -234,7 +234,9 @@ write('well-evidenced', 'probative.profile.json', {
     updateDistributionMechanism: 'Signed npm releases published with build provenance, verified by the installer.',
     automaticSecurityUpdates: false,
     incidentReporting: {
-      procedureDocumented: true, procedureLocation: 'internal runbook IR-014',
+      activelyExploitedVulnerability: { procedureDocumented: true, procedureLocation: 'internal runbook IR-014a' },
+      severeIncident: { procedureDocumented: true, procedureLocation: 'internal runbook IR-014b', severityCriteriaDocumented: true },
+      impactedUserNotificationDocumented: true,
       responsibleRole: 'Head of Security', singleReportingPlatformPrepared: true,
       csirtCoordinator: 'CIRCL, Luxembourg',
     },

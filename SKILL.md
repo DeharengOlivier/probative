@@ -77,10 +77,23 @@ question is a gap the pack will name, not a blocker.
    stay available (Article 13(9), floor of ten years).
 5. **Vulnerability handling**: reporting contact, disclosure policy URL,
    advisory channel, how updates are distributed securely.
-6. **Article 14 readiness**: is there a written procedure for the 24-hour early
-   warning, the 72-hour notification and the 14-day final report; who owns it;
-   which CSIRT coordinates. This applies from **11 September 2026**, before the
-   rest of the Regulation, so ask it early rather than last.
+6. **Article 14 readiness**, two tracks, asked separately because their final
+   report clocks start from different events:
+   - *actively exploited vulnerability* (Article 14(1) and (2)): early warning
+     within 24 hours, vulnerability notification within 72 hours, final report
+     no later than 14 days **after a corrective or mitigating measure is
+     available**;
+   - *severe incident* (Article 14(3) and (4)): early warning within 24 hours
+     stating whether unlawful or malicious acts are suspected, incident
+     notification within 72 hours, final report **within one month after that
+     notification**.
+
+   Also ask what makes an incident severe (Article 14(5)), how impacted users
+   get told (Article 14(8)), who owns each procedure and which CSIRT
+   coordinates. A single procedure covering "both" is a warning sign: it usually
+   means one of the two clocks was never identified. This applies from
+   **11 September 2026**, before the rest of the Regulation, so ask it early
+   rather than last.
 7. **Risk assessment** (Article 13(2) and (3)): does one exist, where, when was
    it last updated, and does it state how Annex I, Part I applies.
 8. **Technical documentation**: where it lives, how it is updated, how long it

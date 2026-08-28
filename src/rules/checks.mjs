@@ -5,6 +5,10 @@ import { monthsBetween, parseSupportDate } from '../util/time.mjs';
 /** Article 14 applies before the rest of the Regulation; Article 71(2). */
 export const ARTICLE_14_APPLICATION_DATE = '2026-09-11';
 export const GENERAL_APPLICATION_DATE = '2027-12-11';
+/** Article 14(2): the final report clock starts when a fix exists, not when the vulnerability is found. */
+const VULNERABILITY_TRACK_DEADLINES = 'early warning within 24 hours, vulnerability notification within 72 hours, final report no later than 14 days after a corrective or mitigating measure is available';
+/** Article 14(4): the final report clock starts at the 72-hour notification, not at the incident. */
+const INCIDENT_TRACK_DEADLINES = 'early warning within 24 hours, incident notification within 72 hours, final report within one month after that notification';
 const SUPPORT_PERIOD_FLOOR_MONTHS = 60; // Article 13(8), third subparagraph
 const UPDATE_AVAILABILITY_FLOOR_YEARS = 10; // Article 13(9)
 
@@ -380,6 +384,12 @@ export const CHECKS = {
       finding('configuration section detected in the readme', docs.readme.mentionsConfiguration ? 'yes' : 'no'),
       finding('secure configuration wording detected', String(docs.secureConfigurationDocs.signals.length)),
       finding('security-related documents', docs.secureConfigurationDocs.matchedFiles.join(', ') || 'none'),
+      // Say out loud what the relevance filter dropped. A repository whose only
+      // hardening guide sits under examples/ would otherwise read as missing
+      // with no way for the reader to see why.
+      ...((docs.secureConfigurationDocs.excludedNonEvidencePaths ?? []).length > 0
+        ? [finding('candidates ignored as test or example material', docs.secureConfigurationDocs.excludedNonEvidencePaths.join(', '))]
+        : []),
       finding('secure installation instructions declared', has(profile, 'userInformation.secureInstallationInstructions') ? 'yes' : 'no'),
       finding('secure decommissioning instructions declared', has(profile, 'userInformation.secureDecommissioningInstructions') ? 'yes' : 'no'),
     ];
@@ -476,27 +486,61 @@ export const CHECKS = {
 
   incidentReportingReadiness(context) {
     const { profile, now } = context;
-    const documented = declared(profile, 'vulnerabilityHandling.incidentReporting.procedureDocumented');
-    const location = declared(profile, 'vulnerabilityHandling.incidentReporting.procedureLocation');
-    const owner = declared(profile, 'vulnerabilityHandling.incidentReporting.responsibleRole');
-    const csirt = declared(profile, 'vulnerabilityHandling.incidentReporting.csirtCoordinator');
-    const platform = declared(profile, 'vulnerabilityHandling.incidentReporting.singleReportingPlatformPrepared');
+    const base = 'vulnerabilityHandling.incidentReporting';
+    const owner = declared(profile, `${base}.responsibleRole`);
+    const csirt = declared(profile, `${base}.csirtCoordinator`);
+    const platform = declared(profile, `${base}.singleReportingPlatformPrepared`);
+    const userNotice = declared(profile, `${base}.impactedUserNotificationDocumented`) === true;
+    const vulnerabilityTrack = declared(profile, `${base}.activelyExploitedVulnerability.procedureDocumented`) === true;
+    const vulnerabilityLocation = declared(profile, `${base}.activelyExploitedVulnerability.procedureLocation`);
+    const incidentTrack = declared(profile, `${base}.severeIncident.procedureDocumented`) === true;
+    const incidentLocation = declared(profile, `${base}.severeIncident.procedureLocation`);
+    const severityCriteria = declared(profile, `${base}.severeIncident.severityCriteriaDocumented`) === true;
+    const undifferentiated = declared(profile, `${base}.procedureDocumented`) === true;
+
     const applicationDate = new Date(`${ARTICLE_14_APPLICATION_DATE}T00:00:00Z`);
     const daysUntil = Math.ceil((applicationDate.getTime() - now.getTime()) / 86400000);
     const findings = [
       finding('Article 14 applies from', ARTICLE_14_APPLICATION_DATE, daysUntil > 0 ? `in ${daysUntil} day(s)` : 'already in force'),
-      finding('procedure documented', documented === true ? 'yes' : documented === false ? 'no' : 'not declared'),
-      finding('procedure location', location ?? 'not declared'),
+      finding('actively exploited vulnerability procedure',
+        vulnerabilityTrack ? `documented at ${vulnerabilityLocation ?? 'an undeclared location'}` : 'not documented',
+        `Article 14(2): ${VULNERABILITY_TRACK_DEADLINES}`),
+      finding('severe incident procedure',
+        incidentTrack ? `documented at ${incidentLocation ?? 'an undeclared location'}` : 'not documented',
+        `Article 14(4): ${INCIDENT_TRACK_DEADLINES}`),
+      finding('criteria for a severe incident documented', severityCriteria ? 'yes' : 'no',
+        'Article 14(5) defines when an incident is severe and therefore reportable'),
+      finding('procedure to inform impacted users documented', userNotice ? 'yes' : 'no', 'Article 14(8)'),
       finding('responsible role', owner ?? 'nobody named'),
       finding('coordinating CSIRT', csirt ?? 'not declared'),
       finding('single reporting platform prepared', platform === true ? 'yes' : platform === false ? 'no' : 'not declared'),
     ];
-    if (documented !== true) {
-      return result(STATUS.MISSING, `No Article 14 reporting procedure is documented. The 24-hour early warning, 72-hour notification and 14-day final report duties apply from ${ARTICLE_14_APPLICATION_DATE}.`, findings);
+    if (undifferentiated) {
+      findings.push(finding('undifferentiated declaration present', 'yes',
+        'a single procedure declared without saying which of the two tracks it covers'));
+    }
+
+    if (!vulnerabilityTrack && !incidentTrack) {
+      if (undifferentiated) {
+        return result(STATUS.PARTIAL, 'One undifferentiated reporting procedure is declared. Article 14 carries two tracks with different triggers and different final report deadlines; restate the declaration for each track.', findings);
+      }
+      return result(STATUS.MISSING, `No Article 14 reporting procedure is documented for either track. Both apply from ${ARTICLE_14_APPLICATION_DATE}.`, findings);
+    }
+    if (!vulnerabilityTrack) {
+      return result(STATUS.PARTIAL, `The severe incident track is documented but the actively exploited vulnerability track of Article 14(1) and (2) is not: ${VULNERABILITY_TRACK_DEADLINES}.`, findings);
+    }
+    if (!incidentTrack) {
+      return result(STATUS.PARTIAL, `The vulnerability track is documented but the severe incident track of Article 14(3) and (4) is not: ${INCIDENT_TRACK_DEADLINES}.`, findings);
     }
     if (!owner || !csirt) {
-      return result(STATUS.PARTIAL, 'A procedure is documented but it does not name both a responsible role and the coordinating CSIRT.', findings);
+      return result(STATUS.PARTIAL, 'Both tracks are documented but the declaration does not name both a responsible role and the coordinating CSIRT.', findings);
     }
-    return result(STATUS.NEEDS_EXPERT_REVIEW, `A reporting procedure is documented, owned by ${owner}, coordinating CSIRT ${csirt}. The deadlines and the designated CSIRT must be confirmed for each Member State concerned.`, findings);
+    if (!severityCriteria) {
+      return result(STATUS.PARTIAL, 'Both tracks are documented but the severity criteria of Article 14(5) are not, so nothing states when an incident becomes reportable.', findings);
+    }
+    if (!userNotice) {
+      return result(STATUS.PARTIAL, 'Both tracks are documented but the Article 14(8) duty to inform impacted users of the vulnerability or incident is not.', findings);
+    }
+    return result(STATUS.NEEDS_EXPERT_REVIEW, `Both reporting tracks are documented, owned by ${owner}, coordinating CSIRT ${csirt}. The designated CSIRT and the deadlines must be confirmed for each Member State concerned.`, findings);
   },
 };

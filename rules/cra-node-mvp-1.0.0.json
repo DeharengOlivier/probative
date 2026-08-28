@@ -545,22 +545,25 @@
     },
     {
       "id": "CRA-NODE-080",
-      "title": "The Article 14 reporting procedure is documented and owned",
+      "title": "Both Article 14 reporting tracks are documented and owned",
       "family": "incident-reporting",
       "loci": [
         "Art.14.1",
         "Art.14.2",
         "Art.14.3",
+        "Art.14.4",
+        "Art.14.5",
+        "Art.14.8",
         "Art.16.1"
       ],
-      "intent": "Article 14 applies from 11 September 2026, ahead of the rest of the Regulation. A procedure has to exist before an actively exploited vulnerability appears, not after.",
+      "intent": "Article 14 applies from 11 September 2026, ahead of the rest of the Regulation, and it carries two distinct tracks. An actively exploited vulnerability under paragraphs 1 and 2 ends in a final report no later than 14 days after a corrective or mitigating measure is available. A severe incident under paragraphs 3 and 4 ends in a final report within one month after the 72-hour incident notification. The clocks start from different events, so one undifferentiated procedure answers neither reliably. Both have to exist before the event does.",
       "check": "incidentReportingReadiness",
       "priority": "P0",
-      "limitations": "Declared. The tool checks that a procedure, an owner and a coordinating CSIRT are recorded; it cannot rehearse the procedure.",
+      "limitations": "Declared. The tool checks that a procedure is recorded for each track, with an owner and a coordinating CSIRT; it cannot rehearse either procedure.",
       "expertReviewWhen": [
-        "always: the coordinating CSIRT and the notification deadlines must be confirmed for the Member States concerned"
+        "always: the coordinating CSIRT and both sets of deadlines must be confirmed for the Member States concerned"
       ],
-      "remediation": "Write the procedure covering the 24-hour early warning, the 72-hour vulnerability notification and the 14-day final report through the single reporting platform, and name the person responsible.",
+      "remediation": "Write two procedures through the single reporting platform. For an actively exploited vulnerability: 24-hour early warning, 72-hour vulnerability notification, final report no later than 14 days after a corrective or mitigating measure is available. For a severe incident: 24-hour early warning stating whether unlawful or malicious acts are suspected, 72-hour incident notification, final report within one month of that notification. Record the Article 14(5) criteria that make an incident severe, the Article 14(8) duty to inform impacted users, and name the person responsible.",
       "status": "active"
     }
   ]

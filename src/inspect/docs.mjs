@@ -1,4 +1,4 @@
-import { readRepoFile, repoFileExists, walkRepo } from '../util/fs.mjs';
+import { readRepoFile, repoFileExists, walkRepo, partitionByEvidenceRelevance } from '../util/fs.mjs';
 import { redact } from '../util/redact.mjs';
 
 const SECURITY_POLICY_PATHS = ['SECURITY.md', '.github/SECURITY.md', 'docs/SECURITY.md', 'SECURITY.rst', 'SECURITY.txt'];
@@ -32,7 +32,9 @@ const SECURE_INSTALL_SIGNALS = [
   /threat model/i,
 ];
 
-const SBOM_FILE = /(?:^|\/)(?:bom|sbom)[^/]*\.(?:json|xml)$|\.(?:cdx|spdx)\.(?:json|xml)$|(?:^|\/)sbom\//i;
+// A directory dedicated to SBOMs still only holds SBOMs if the file is one:
+// without the extension anchor, `src/sbom/uuid.mjs` matched.
+const SBOM_FILE = /(?:^|\/)(?:bom|sbom)[^/]*\.(?:json|xml)$|\.(?:cdx|spdx)\.(?:json|xml)$|(?:^|\/)sbom\/.*\.(?:json|xml)$/i;
 const VEX_FILE = /(?:^|\/)[^/]*vex[^/]*\.(?:json|xml)$/i;
 
 function firstExisting(root, candidates) {
@@ -74,9 +76,12 @@ export function inspectDocs(root) {
   const securityTxtPath = firstExisting(root, SECURITY_TXT);
   const securityTxtText = securityTxtPath ? readRepoFile(root, securityTxtPath) : null;
 
-  const advisoryFiles = files.filter((f) => /^\.github\/security\/advisories\//i.test(f) || /^security\/advisories\//i.test(f));
-  const sbomFiles = files.filter((f) => SBOM_FILE.test(f) && !f.startsWith('test/'));
-  const vexFiles = files.filter((f) => VEX_FILE.test(f));
+  const advisories = partitionByEvidenceRelevance(files.filter((f) => /^\.github\/security\/advisories\//i.test(f) || /^security\/advisories\//i.test(f)));
+  const sboms = partitionByEvidenceRelevance(files.filter((f) => SBOM_FILE.test(f)));
+  const vexes = partitionByEvidenceRelevance(files.filter((f) => VEX_FILE.test(f)));
+  const secureConfigDocs = partitionByEvidenceRelevance(
+    files.filter((f) => /(?:hardening|security|secure-config|threat-model|deployment)/i.test(f) && /\.(md|rst|txt|adoc)$/i.test(f)),
+  );
 
   const combinedUserDocs = [readmeText, changelogText, securityPolicyText].filter(Boolean).join('\n');
   const docsDirectory = files.some((f) => /^docs?\//i.test(f));
@@ -111,13 +116,14 @@ export function inspectDocs(root) {
     },
     license: { path: firstExisting(root, LICENSES), present: Boolean(firstExisting(root, LICENSES)) },
     contributing: { path: firstExisting(root, CONTRIBUTING), present: Boolean(firstExisting(root, CONTRIBUTING)) },
-    advisories: { count: advisoryFiles.length, paths: advisoryFiles.slice(0, 50) },
-    existingSbom: { count: sbomFiles.length, paths: sbomFiles.slice(0, 20) },
-    existingVex: { count: vexFiles.length, paths: vexFiles.slice(0, 20) },
+    advisories: { count: advisories.kept.length, paths: advisories.kept.slice(0, 50), excludedNonEvidencePaths: advisories.excluded.slice(0, 20) },
+    existingSbom: { count: sboms.kept.length, paths: sboms.kept.slice(0, 20), excludedNonEvidencePaths: sboms.excluded.slice(0, 20) },
+    existingVex: { count: vexes.kept.length, paths: vexes.kept.slice(0, 20), excludedNonEvidencePaths: vexes.excluded.slice(0, 20) },
     secureConfigurationDocs: {
       docsDirectory,
       signals: SECURE_INSTALL_SIGNALS.filter((p) => p.test(combinedUserDocs)).map((p) => p.source),
-      matchedFiles: files.filter((f) => /(?:hardening|security|secure-config|threat-model|deployment)/i.test(f) && /\.(md|rst|txt|adoc)$/i.test(f)).slice(0, 20),
+      matchedFiles: secureConfigDocs.kept.slice(0, 20),
+      excludedNonEvidencePaths: secureConfigDocs.excluded.slice(0, 20),
     },
     fileCount: files.length,
     notes,

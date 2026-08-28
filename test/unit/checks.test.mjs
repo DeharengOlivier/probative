@@ -113,3 +113,103 @@ test('a check that throws is reported as an error rather than crashing the run',
   const broken = { ...baseContext, inventory: null };
   assert.throws(() => CHECKS[control.check](broken, control));
 });
+
+// --- Article 14 has two reporting tracks, not one ----------------------------
+// Art. 14(1)-(2): actively exploited vulnerability. 24h early warning, 72h
+// vulnerability notification, final report no later than 14 days AFTER A
+// CORRECTIVE OR MITIGATING MEASURE IS AVAILABLE.
+// Art. 14(3)-(5): severe incident. 24h early warning, 72h incident
+// notification, final report within ONE MONTH AFTER THE 72-HOUR NOTIFICATION.
+// The anchors differ, so a single procedure cannot satisfy both by accident.
+
+function reportingContext(incidentReporting) {
+  return { ...baseContext, profile: { vulnerabilityHandling: { incidentReporting } } };
+}
+
+const fullyDeclared = {
+  responsibleRole: 'Head of Security',
+  csirtCoordinator: 'CIRCL, Luxembourg',
+  singleReportingPlatformPrepared: true,
+  activelyExploitedVulnerability: { procedureDocumented: true, procedureLocation: 'runbook IR-014a' },
+  severeIncident: { procedureDocumented: true, procedureLocation: 'runbook IR-014b', severityCriteriaDocumented: true },
+  impactedUserNotificationDocumented: true,
+};
+
+test('Article 14: nothing declared is missing', () => {
+  const outcome = CHECKS.incidentReportingReadiness({ ...baseContext, profile: null });
+  assert.equal(outcome.status, STATUS.MISSING);
+});
+
+test('Article 14: only the actively exploited vulnerability track is partial', () => {
+  const outcome = CHECKS.incidentReportingReadiness(reportingContext({
+    ...fullyDeclared, severeIncident: { procedureDocumented: false },
+  }));
+  assert.equal(outcome.status, STATUS.PARTIAL);
+  assert.match(outcome.summary, /severe incident/i);
+});
+
+test('Article 14: only the severe incident track is partial', () => {
+  const outcome = CHECKS.incidentReportingReadiness(reportingContext({
+    ...fullyDeclared, activelyExploitedVulnerability: { procedureDocumented: false },
+  }));
+  assert.equal(outcome.status, STATUS.PARTIAL);
+  assert.match(outcome.summary, /actively exploited vulnerabilit/i);
+});
+
+test('Article 14: both tracks without an owner or a CSIRT is partial', () => {
+  const noOwner = CHECKS.incidentReportingReadiness(reportingContext({ ...fullyDeclared, responsibleRole: null }));
+  assert.equal(noOwner.status, STATUS.PARTIAL);
+  const noCsirt = CHECKS.incidentReportingReadiness(reportingContext({ ...fullyDeclared, csirtCoordinator: null }));
+  assert.equal(noCsirt.status, STATUS.PARTIAL);
+});
+
+test('Article 14: the severity criteria of Article 14(5) are their own question', () => {
+  const outcome = CHECKS.incidentReportingReadiness(reportingContext({
+    ...fullyDeclared,
+    severeIncident: { procedureDocumented: true, severityCriteriaDocumented: false },
+  }));
+  assert.equal(outcome.status, STATUS.PARTIAL, 'without the severity test you cannot know an incident is reportable');
+  assert.match(outcome.summary, /severit/i);
+});
+
+test('Article 14: the duty to inform impacted users under 14(8) is asked', () => {
+  const outcome = CHECKS.incidentReportingReadiness(reportingContext({
+    ...fullyDeclared, impactedUserNotificationDocumented: false,
+  }));
+  assert.equal(outcome.status, STATUS.PARTIAL);
+  assert.match(outcome.summary, /user/i);
+});
+
+test('Article 14: a complete declaration still needs expert review, never verified', () => {
+  const outcome = CHECKS.incidentReportingReadiness(reportingContext(fullyDeclared));
+  assert.equal(outcome.status, STATUS.NEEDS_EXPERT_REVIEW);
+  assert.notEqual(outcome.status, STATUS.VERIFIED, 'a manufacturer declaration is never verified');
+});
+
+test('Article 14: both final report deadlines are quoted with their own anchor', () => {
+  const shown = CHECKS.incidentReportingReadiness(reportingContext(fullyDeclared))
+    .findings.map((f) => `${f.label}: ${f.value} ${f.detail ?? ''}`).join('\n');
+  assert.match(shown, /14 days after a corrective or mitigating measure is available/i);
+  assert.match(shown, /one month after/i);
+  assert.match(shown, /24 hours/);
+  assert.match(shown, /72 hours/);
+});
+
+test('Article 14: a pre-two-track declaration is reported, never silently accepted or dropped', () => {
+  const outcome = CHECKS.incidentReportingReadiness(reportingContext({
+    procedureDocumented: true,
+    procedureLocation: 'internal runbook IR-014',
+    responsibleRole: 'Head of Security',
+    csirtCoordinator: 'CIRCL, Luxembourg',
+  }));
+  assert.equal(outcome.status, STATUS.PARTIAL, 'one undifferentiated procedure does not answer two tracks');
+  assert.match(outcome.summary, /restate|does not say which|both tracks/i);
+});
+
+test('Article 14: the rule cites both tracks', () => {
+  const ruleset = loadRuleset();
+  const control = ruleset.controls.find((c) => c.id === 'CRA-NODE-080');
+  for (const locus of ['Art.14.1', 'Art.14.2', 'Art.14.3', 'Art.14.4', 'Art.14.5', 'Art.14.8']) {
+    assert.ok(control.loci.includes(locus), `CRA-NODE-080 does not cite ${locus}`);
+  }
+});

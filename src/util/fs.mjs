@@ -20,6 +20,68 @@ export const DENIED_FILE_PATTERNS = Object.freeze([
 ]);
 
 /** Hard ceilings so a hostile repository cannot exhaust memory or time. */
+/**
+ * Directories whose contents describe something other than the product itself:
+ * test material, worked examples, vendored copies of other people's code.
+ *
+ * This is a RELEVANCE filter, not a safety filter. These directories are walked
+ * and they appear in the file inventory, because they are genuinely part of the
+ * repository. What they must never do is stand as evidence about the product:
+ * a SECURITY.md inside a test fixture says nothing about the product's own
+ * vulnerability handling, and counting it produces a false positive in exactly
+ * the direction that matters least to a manufacturer and most to a market
+ * surveillance authority. Keep it separate from DENIED_DIRECTORIES, which
+ * exists for a different reason (never read this at all).
+ *
+ * Deliberately absent: `spec` and `specs`. In a JavaScript repository they
+ * usually hold tests, but everywhere else they hold specifications, which are
+ * evidence. Excluding real evidence is the worse error, so they stay in.
+ * Generated output (dist, build, coverage, .next, ...) is already excluded one
+ * level earlier by DENIED_DIRECTORIES and is never walked.
+ */
+export const NON_EVIDENCE_DIRECTORIES = Object.freeze([
+  'test', 'tests', '__tests__', 'testdata', 'test-data', 'testing',
+  'fixture', 'fixtures', '__fixtures__', '__mocks__',
+  'example', 'examples', 'sample', 'samples', 'demo', 'demos',
+  'vendor', 'vendored', 'third_party', 'third-party',
+  'node_modules', 'bower_components',
+]);
+
+const NON_EVIDENCE_SET = new Set(NON_EVIDENCE_DIRECTORIES);
+
+/**
+ * Whether a repository-relative path may stand as evidence about the product.
+ *
+ * Matches whole path SEGMENTS, never substrings, so `src/latest/`, `contest/`
+ * and a file called `test.md` all remain evidence. Only directory segments are
+ * considered: a file named after an excluded directory is not one.
+ *
+ * @param {string} relativePath repository-relative, forward slashes
+ * @returns {boolean}
+ * Complexity: O(number of path segments).
+ */
+export function isEvidencePath(relativePath) {
+  if (!relativePath) return true;
+  const segments = relativePath.split('/');
+  segments.pop(); // the file name itself is never a directory
+  return !segments.some((segment) => NON_EVIDENCE_SET.has(segment.toLowerCase()));
+}
+
+/**
+ * Splits candidate evidence paths into those that count and those that do not.
+ * The excluded list is returned rather than discarded so that the pack can say
+ * out loud what it ignored; a silent filter in a compliance tool is a trap.
+ *
+ * @param {string[]} paths
+ * @returns {{kept: string[], excluded: string[]}}
+ */
+export function partitionByEvidenceRelevance(paths) {
+  const kept = [];
+  const excluded = [];
+  for (const path of paths) (isEvidencePath(path) ? kept : excluded).push(path);
+  return { kept, excluded };
+}
+
 export const LIMITS = Object.freeze({
   maxFileBytes: 2 * 1024 * 1024,
   maxWalkEntries: 20000,

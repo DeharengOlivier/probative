@@ -105,3 +105,15 @@ test('an article aggregate reproduces its own paragraphs and nothing else', () =
   }
   assert.ok(!article.text.includes('Article 32'));
 });
+
+test('the skill interview asks both Article 14 tracks with their own clock', () => {
+  const skill = readFileSync(join(projectRoot, 'SKILL.md'), 'utf8');
+  assert.match(skill, /actively exploited vulnerability/i);
+  assert.match(skill, /severe incident/i);
+  assert.match(skill, /14 days \*\*after a corrective or mitigating measure is\s+available\*\*/i,
+    'the 14-day clock must be anchored on the availability of a fix');
+  assert.match(skill, /within one month after that\s+notification/i,
+    'the one-month clock must be anchored on the 72-hour notification');
+  assert.match(skill, /Article 14\(5\)/);
+  assert.match(skill, /Article 14\(8\)/);
+});
