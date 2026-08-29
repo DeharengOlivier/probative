@@ -1,4 +1,5 @@
 import { test } from 'node:test';
+import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
 import { inspectLockfile, packagePathToName, parseIntegrity, toPurl } from '../../src/inspect/lockfile.mjs';
 import { inspectPackage } from '../../src/inspect/npm.mjs';
@@ -16,9 +17,13 @@ test('reads the package name out of a nested node_modules path', () => {
 });
 
 test('converts npm integrity to the CycloneDX hash shape', () => {
-  const parsed = parseIntegrity('sha512-YWJj');
+  // The digest is a real one: this test used to pass 'sha512-YWJj', three
+  // bytes, and assert that they came out as a SHA-512. They do not any more,
+  // and the length cases live in test/unit/sbom-hashes.test.mjs.
+  const digest = createHash('sha512').update('left-pad@1.3.0').digest();
+  const parsed = parseIntegrity(`sha512-${digest.toString('base64')}`);
   assert.equal(parsed.alg, 'SHA-512');
-  assert.equal(parsed.content, Buffer.from('YWJj', 'base64').toString('hex'));
+  assert.equal(parsed.content, digest.toString('hex'));
   assert.equal(parseIntegrity('md5-YWJj'), null);
   assert.equal(parseIntegrity(undefined), null);
 });

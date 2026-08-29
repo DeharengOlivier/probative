@@ -45,19 +45,37 @@ export function toPurl(name, version) {
   return `pkg:npm/${encodeURIComponent(name)}${encodedVersion}`;
 }
 
-/** npm stores integrity as 'sha512-<base64>'; CycloneDX wants hex per algorithm. */
+/** What each algorithm produces, in bytes. A digest of another length is not one. */
+const DIGEST_BYTES = { sha1: 20, sha256: 32, sha384: 48, sha512: 64 };
+const CYCLONEDX_ALGORITHM = { sha1: 'SHA-1', sha256: 'SHA-256', sha384: 'SHA-384', sha512: 'SHA-512' };
+
+/**
+ * npm stores integrity as 'sha512-<base64>'; CycloneDX wants hex per algorithm.
+ *
+ * The length is checked because CycloneDX accepts a hash only as a hex digest
+ * of the length its algorithm produces, and one that is not makes the whole
+ * document invalid rather than one component: a lockfile with a hand-edited
+ * integrity would cost the reader the entire bill of materials. What cannot be
+ * read as a digest is reported as no digest, which the component already has a
+ * property for.
+ *
+ * @param {unknown} integrity
+ * @returns {{alg: string, content: string}|null}
+ */
 export function parseIntegrity(integrity) {
   if (typeof integrity !== 'string') return null;
   const [algorithm, base64] = integrity.split('-');
   if (!algorithm || !base64) return null;
-  const algorithmMap = { sha1: 'SHA-1', sha256: 'SHA-256', sha384: 'SHA-384', sha512: 'SHA-512' };
-  const mapped = algorithmMap[algorithm.toLowerCase()];
+  const mapped = CYCLONEDX_ALGORITHM[algorithm.toLowerCase()];
   if (!mapped) return null;
+  let bytes;
   try {
-    return { alg: mapped, content: Buffer.from(base64, 'base64').toString('hex') };
+    bytes = Buffer.from(base64, 'base64');
   } catch {
     return null;
   }
+  if (bytes.length !== DIGEST_BYTES[algorithm.toLowerCase()]) return null;
+  return { alg: mapped, content: bytes.toString('hex') };
 }
 
 /**

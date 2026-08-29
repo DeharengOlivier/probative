@@ -4,6 +4,7 @@
  * in, so a test failure is never explained by a fixture that drifted; run this
  * only when a fixture is deliberately changed.
  */
+import { createHash } from 'node:crypto';
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -19,7 +20,11 @@ const write = (fixture, path, content) => {
 const lockEntry = (name, version, { dev = false, integrity = true, deps = null } = {}) => ({
   version,
   resolved: `https://registry.npmjs.org/${name}/-/${name.split('/').pop()}-${version}.tgz`,
-  ...(integrity ? { integrity: `sha512-${Buffer.from(`${name}@${version}`).toString('base64').padEnd(88, 'A').slice(0, 88)}` } : {}),
+  // A real sha512 of the component's name, so the fixture carries a digest of
+  // the length the algorithm produces. Padding a short string out to 88
+  // characters looked right and decoded to fourteen bytes, because the padding
+  // character ends the encoded data.
+  ...(integrity ? { integrity: `sha512-${createHash('sha512').update(`${name}@${version}`).digest('base64')}` } : {}),
   ...(dev ? { dev: true } : {}),
   ...(deps ? { dependencies: deps } : {}),
   license: 'MIT',
