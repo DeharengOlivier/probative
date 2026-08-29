@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/DeharengOlivier/cra-evidence/schemas/product-profile.schema.json",
+  "$id": "https://github.com/DeharengOlivier/probative/schemas/product-profile.schema.json",
   "title": "CRA evidence product profile",
   "description": "Declarations that cannot be observed in a repository. Every field here is stated by the manufacturer and is reported with status 'declared', never 'verified'. Field descriptions cite the locus of Regulation (EU) 2024/2847 that makes the information relevant.",
   "type": "object",

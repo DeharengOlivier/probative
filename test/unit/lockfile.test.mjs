@@ -41,7 +41,11 @@ test('reports a missing lockfile as an error, not as an empty inventory', () => 
   const root = fixturePath('minimal-unprepared');
   const lockfile = inspectLockfile(root, inspectPackage(root));
   assert.equal(lockfile.present, false);
-  assert.match(lockfile.error, /package-lock\.json not found/);
+  // Wording deliberately changed: the message must say a lockfile is missing
+  // without prescribing a package manager, so this asserts the behaviour rather
+  // than the sentence.
+  assert.match(lockfile.error, /no lockfile/i);
+  assert.doesNotMatch(lockfile.error, /npm install/i);
   assert.deepEqual(lockfile.components, []);
 });
 

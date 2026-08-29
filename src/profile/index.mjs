@@ -51,7 +51,7 @@ export function declared(profile, path) {
  */
 export function profileTemplate() {
   return stringify({
-    $schema: './node_modules/cra-evidence/schemas/product-profile.schema.json',
+    $schema: './node_modules/probative/schemas/product-profile.schema.json',
     schemaVersion: '1.0.0',
     product: {
       commercialName: '', identifier: null, intendedPurpose: '', securityEnvironment: null,
@@ -76,9 +76,13 @@ export function profileTemplate() {
       reportingContact: '', disclosurePolicyUrl: null, advisoryChannelUrl: null,
       securityUpdatesSeparateFromFeatures: null, updateDistributionMechanism: null,
       automaticSecurityUpdates: null,
+      // Article 14 carries two tracks whose final report clocks start from
+      // different events, so each is declared separately.
       incidentReporting: {
-        procedureDocumented: null, procedureLocation: null, responsibleRole: null,
-        singleReportingPlatformPrepared: null, csirtCoordinator: null,
+        activelyExploitedVulnerability: { procedureDocumented: null, procedureLocation: null },
+        severeIncident: { procedureDocumented: null, procedureLocation: null, severityCriteriaDocumented: null },
+        impactedUserNotificationDocumented: null,
+        responsibleRole: null, singleReportingPlatformPrepared: null, csirtCoordinator: null,
       },
     },
     riskAssessment: {

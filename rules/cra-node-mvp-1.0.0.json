@@ -183,12 +183,12 @@
       "intent": "Annex I, Part II, point (1) sets the floor at the top-level dependencies in a commonly used, machine-readable format.",
       "check": "sbomTopLevelCoverage",
       "priority": "P0",
-      "limitations": "Coverage is measured against the dependencies declared in package.json and resolved by the lockfile. Components introduced at build time, vendored code and non-npm components are outside this measurement.",
+      "limitations": "Coverage is measured against the dependencies declared in package.json and resolved by the lockfile. Components introduced at build time, vendored code and non-npm components are outside this measurement. Only npm package-lock.json files are read; a repository locked with pnpm, yarn or bun is reported as unresolvable rather than inventoried.",
       "expertReviewWhen": [
         "the product ships components that npm does not install",
         "a bundler inlines dependencies not present in the lockfile"
       ],
-      "remediation": "Commit a package-lock.json produced by npm 7 or later, then publish the generated sbom.cdx.json alongside each release.",
+      "remediation": "Commit a lockfile this ruleset can read, a package-lock.json produced by npm 7 or later, and publish the generated sbom.cdx.json alongside each release. In another ecosystem (pnpm, yarn, bun), generate the bill of materials with that ecosystem's own tooling: Annex I, Part II, point 1 asks for the SBOM, not for a particular package manager.",
       "status": "active"
     },
     {

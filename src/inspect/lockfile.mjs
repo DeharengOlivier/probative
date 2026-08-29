@@ -1,4 +1,4 @@
-import { readRepoFile } from '../util/fs.mjs';
+import { readRepoFile, repoFileExists } from '../util/fs.mjs';
 
 /**
  * The lockfile is the only trustworthy source for a component inventory: it
@@ -6,6 +6,25 @@ import { readRepoFile } from '../util/fs.mjs';
  * npm itself verified. Reading it means the tool never has to run an install to
  * know what ships, which is what keeps the whole pipeline offline.
  */
+
+/**
+ * Lockfiles this ruleset cannot read. Naming them matters: a pnpm or yarn
+ * repository that is told to 'commit a package-lock.json' has been given advice
+ * that breaks its install. The tool reports what it found and what it cannot do
+ * with it, and leaves the choice of package manager alone.
+ */
+const FOREIGN_LOCKFILES = Object.freeze([
+  { manager: 'pnpm', file: 'pnpm-lock.yaml' },
+  { manager: 'yarn', file: 'yarn.lock' },
+  { manager: 'bun', file: 'bun.lockb' },
+  { manager: 'bun', file: 'bun.lock' },
+  { manager: 'npm shrinkwrap', file: 'npm-shrinkwrap.json' },
+]);
+
+/** @returns {Array<{manager: string, file: string}>} Complexity: O(1). */
+function detectForeignLockfiles(root) {
+  return FOREIGN_LOCKFILES.filter(({ file }) => repoFileExists(root, file));
+}
 
 /** Turn 'node_modules/a/node_modules/@scope/b' into '@scope/b'. */
 export function packagePathToName(path) {
@@ -47,12 +66,16 @@ export function parseIntegrity(integrity) {
  */
 export function inspectLockfile(root, packageInfo) {
   const notes = [];
+  const otherEcosystems = detectForeignLockfiles(root);
   const raw = readRepoFile(root, 'package-lock.json');
   if (raw === null) {
+    const found = otherEcosystems.map((e) => e.file).join(', ');
     return {
       present: false,
-      error: 'package-lock.json not found; the component inventory cannot be resolved offline',
-      lockfileVersion: null, components: [], topLevelNames: [],
+      error: found
+        ? `this ruleset reads npm package-lock.json files only, and this repository uses ${found}; the component inventory could not be resolved here`
+        : 'no lockfile was found, so the component inventory cannot be resolved offline',
+      lockfileVersion: null, components: [], topLevelNames: [], unresolvedTopLevel: [], otherEcosystems,
       counts: { total: 0, production: 0, development: 0, optional: 0 }, notes,
     };
   }
@@ -63,7 +86,7 @@ export function inspectLockfile(root, packageInfo) {
   } catch (error) {
     return {
       present: true, error: `package-lock.json is not valid JSON: ${error.message}`,
-      lockfileVersion: null, components: [], topLevelNames: [],
+      lockfileVersion: null, components: [], topLevelNames: [], unresolvedTopLevel: [], otherEcosystems,
       counts: { total: 0, production: 0, development: 0, optional: 0 }, notes,
     };
   }
@@ -76,7 +99,7 @@ export function inspectLockfile(root, packageInfo) {
     return {
       present: true,
       error: `package-lock.json has no 'packages' map (lockfileVersion ${lockfileVersion ?? 'unknown'}); only npm 7+ lockfiles can be inventoried`,
-      lockfileVersion, components: [], topLevelNames: [],
+      lockfileVersion, components: [], topLevelNames: [], unresolvedTopLevel: [], otherEcosystems,
       counts: { total: 0, production: 0, development: 0, optional: 0 }, notes,
     };
   }
@@ -133,10 +156,15 @@ export function inspectLockfile(root, packageInfo) {
     notes.push(`declared dependencies absent from the lockfile: ${unresolvedTopLevel.join(', ')}; the lockfile is out of date with package.json`);
   }
 
+  if (otherEcosystems.length > 0) {
+    notes.push(`the repository also carries ${otherEcosystems.map((e) => e.file).join(', ')}; the inventory was resolved from package-lock.json only`);
+  }
+
   return {
     present: true,
     error: null,
     lockfileVersion,
+    otherEcosystems,
     components,
     topLevelNames,
     unresolvedTopLevel,

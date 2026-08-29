@@ -1,9 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { appendFileSync, existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { main, EXIT } from '../../src/cli.mjs';
 import { copyFixture, fixturePath, FIXED_NOW, tempDirectory } from '../helpers.mjs';
+
+const projectRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 function invoke(argv) {
   const out = { text: '', write(chunk) { this.text += chunk; } };
@@ -169,4 +172,49 @@ test('the pack SBOM is reported as ignored rather than counted as the product SB
   const inventory = JSON.parse(invoke(['inspect', scratch.path, '--json', '--now', FIXED_NOW]).out);
   assert.ok(!inventory.docs.existingSbom.paths.some((p) => p.startsWith('cra-evidence/')));
   assert.ok(inventory.docs.existingSbom.excludedNonEvidencePaths.includes('cra-evidence/sbom.cdx.json'));
+});
+
+// A template that cannot satisfy the ruleset sends a conscientious user in
+// circles: they fill in every field they were given and the control still
+// reports a gap, with no field to fill for the half that is missing.
+test('every field the template offers exists in the schema, and every declared field the ruleset reads is offered', async (t) => {
+  const scratch = tempDirectory();
+  t.after(scratch.cleanup);
+  writeFileSync(join(scratch.path, 'package.json'), '{"name":"tpl","version":"1.0.0"}');
+  assert.equal(invoke(['profile', 'init', scratch.path]).code, EXIT.OK);
+
+  const template = JSON.parse(readFileSync(join(scratch.path, 'probative.profile.json'), 'utf8'));
+  const { PROFILE_SCHEMA } = await import('../../src/profile/index.mjs');
+  const { validate } = await import('../../src/util/schema.mjs');
+  // The template is blank on purpose: the six mandatory fields are left empty
+  // for the user to answer. Anything OTHER than that is structural drift.
+  const structural = validate(PROFILE_SCHEMA, template).filter((e) => !/minLength/.test(e.message));
+  assert.deepEqual(structural, [], 'the template has drifted from its schema');
+
+  // Every dotted path the checks read must be reachable in the template.
+  const source = readFileSync(join(projectRoot, 'src', 'rules', 'checks.mjs'), 'utf8');
+  const paths = new Set([...source.matchAll(/declared\(profile, '([^']+)'\)/g)].map((m) => m[1]));
+  for (const m of source.matchAll(/declared\(profile, `\$\{base\}\.([^`]+)`\)/g)) paths.add(`vulnerabilityHandling.incidentReporting.${m[1]}`);
+  const reachable = (object, path) => path.split('.').reduce((cursor, key) =>
+    (cursor && typeof cursor === 'object' && key in cursor ? cursor[key] : undefined), object) !== undefined;
+  // A field the schema marks as superseded is read so an older profile can be
+  // told to restate itself, and must NOT be offered to someone starting fresh.
+  const describedAs = (path) => path.split('.').reduce((node, key) =>
+    node?.properties?.[key], PROFILE_SCHEMA)?.description ?? '';
+  const unreachable = [...paths]
+    .filter((p) => !reachable(template, p) && !/^Superseded/.test(describedAs(p)))
+    .sort();
+  assert.deepEqual(unreachable, [], 'the ruleset reads fields the template never offers');
+  assert.ok(!reachable(template, 'vulnerabilityHandling.incidentReporting.procedureDocumented'),
+    'a superseded field must not be offered to someone starting a fresh profile');
+});
+
+test('the template points at the package that actually ships the schema', async (t) => {
+  const scratch = tempDirectory();
+  t.after(scratch.cleanup);
+  writeFileSync(join(scratch.path, 'package.json'), '{"name":"tpl","version":"1.0.0"}');
+  invoke(['profile', 'init', scratch.path]);
+  const template = JSON.parse(readFileSync(join(scratch.path, 'probative.profile.json'), 'utf8'));
+  const pkg = JSON.parse(readFileSync(join(projectRoot, 'package.json'), 'utf8'));
+  assert.ok(template.$schema.includes(pkg.name), `template points at ${template.$schema}, but the package is ${pkg.name}`);
 });
