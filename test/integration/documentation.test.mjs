@@ -142,12 +142,19 @@ test('the package says where it lives, so npm and the registry agree', () => {
   assert.equal(pkg.publishConfig?.access, 'public', 'a scoped or private default would silently fail to publish');
 });
 
-test('the test script hands the runner file paths, not a glob it may not expand', () => {
+// Specification change, made deliberately when the engines floor moved to Node
+// 22: the glob is now QUOTED so that Node expands it. An unquoted glob needs a
+// POSIX shell, and `npm test` on Windows runs through cmd, which would hand the
+// runner a literal asterisk. The two facts are coupled, so the test asserts both.
+test('the test script glob is expanded by Node, not by the shell', () => {
   const pkg = JSON.parse(readFileSync(join(projectRoot, 'package.json'), 'utf8'));
+  const floorMajor = Number(pkg.engines.node.replace(/^>=/, '').split('.')[0]);
+  assert.ok(floorMajor >= 22, 'Node expands a --test glob only from v22; below that the shell must, and the glob must be unquoted');
   for (const [name, script] of Object.entries(pkg.scripts)) {
     if (!script.includes('--test')) continue;
-    assert.doesNotMatch(script, /"[^"]*\*[^"]*"/,
-      `${name} quotes a glob; Node only expands one itself from v22, so the shell must do it`);
+    for (const argument of script.match(/\S*\*\S*/g) ?? []) {
+      assert.match(argument, /^"[^"]*"$/, `${name} leaves ${argument} to the shell, which cmd will not expand`);
+    }
   }
 });
 
@@ -214,4 +221,18 @@ test('the index records the digest of the text as published and of the corrected
   assert.ok(sums.includes(reference.sourceSha256), 'the as-published text is not in SHA256SUMS');
   assert.ok(sums.includes(reference.correctedSha256), 'the corrected text is not in SHA256SUMS');
   assert.ok(reference.corrigendaApplied.length >= 3);
+});
+
+test('line endings are pinned, or the hashed reference differs by platform', () => {
+  const attributes = readFileSync(join(projectRoot, '.gitattributes'), 'utf8');
+  assert.match(attributes, /^\* text=auto eol=lf$/m, 'without this, Git for Windows rewrites checked-out files');
+  assert.match(attributes, /^reference\/\*\* -text$/m, 'the text the digests cover must never be translated');
+});
+
+test('provenance is asked for, and a workflow exists that can actually produce it', () => {
+  const pkg = JSON.parse(readFileSync(join(projectRoot, 'package.json'), 'utf8'));
+  if (!pkg.publishConfig?.provenance) return;
+  const release = readFileSync(join(projectRoot, '.github', 'workflows', 'release.yml'), 'utf8');
+  assert.match(release, /id-token:\s*write/, 'provenance needs an OIDC identity; without it every publish fails');
+  assert.match(release, /npm publish/);
 });

@@ -71,7 +71,11 @@ a repository simply cannot establish.
 
 ## Install
 
-Node 20.11 or later. **No runtime dependencies.**
+Node 22.12 or later. **No runtime dependencies.**
+
+Node 20 reached end of life in April 2026 and no longer receives security
+patches. A tool whose subject is regulatory security evidence should not ask
+you to run an unpatched runtime, so the floor is the supported LTS.
 
 ```sh
 npx probative --help          # no install
@@ -174,6 +178,20 @@ and can be checked against the source:
 probative cite AnnexI.PartII.1
 probative cite Art.13.8
 ```
+
+The text as first published is not the text in force. Three corrigenda have
+corrected the English version, one of them substantively: Article 64(10) reads
+"derogation from paragraphs 2 to 9", not "3 to 9". `reference/corrigenda.json`
+records each one verbatim with its CELEX, Official Journal reference and ELI,
+including the four that correct only the French, Hungarian, Slovak or German
+versions and are deliberately not applied. The index is built from the corrected
+text; the as-published text keeps its own file and digest, so the chain from the
+Publications Office to the wording you are quoted stays verifiable at both ends.
+
+`npm run check:upstream` asks the Official Journal whether a corrigendum has
+appeared that this repository has not applied, and CI runs it weekly. It is the
+only check here that can fail because the law moved rather than because the code
+did.
 
 No rule paraphrases the Regulation. Each one cites a locus, and the pack quotes
 the official wording.

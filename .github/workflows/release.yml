@@ -1,0 +1,34 @@
+name: release
+
+# Publishing happens here and nowhere else. package.json asks npm for build
+# provenance, which can only be produced by a workflow with an OIDC identity:
+# a local `npm publish` would be rejected, and an unattested one would be worse.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  id-token: write # required for provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22.12'
+          registry-url: 'https://registry.npmjs.org'
+      - name: The suite passes on the exact commit being published
+        run: npm test
+      - name: The shipped Regulation is still the Regulation in force
+        run: npm run check:upstream
+      - name: The tag matches the version being published
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version=$(node -p "require('./package.json').version")
+          test "$tag" = "$version" || { echo "tag $tag does not match package version $version"; exit 1; }
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

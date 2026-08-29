@@ -1,0 +1,9 @@
+# The reference text and the fixtures are hashed, and the packs are compared
+# byte for byte. Git for Windows converts line endings on checkout by default,
+# which would change those bytes and make every digest disagree by platform.
+* text=auto eol=lf
+
+# No translation at all for anything whose bytes are the evidence.
+reference/** -text
+test/fixtures/** -text
+*.svg -text
