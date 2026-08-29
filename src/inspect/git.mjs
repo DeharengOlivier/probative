@@ -25,6 +25,45 @@ function git(root, args) {
   }
 }
 
+/** A name that is actually a host: labels of letters, digits and hyphens. */
+const HOSTNAME = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*$/i;
+/** An IPv6 literal as a URL carries it, brackets included. */
+const IPV6_LITERAL = /^\[[0-9a-f:.]+\]$/i;
+
+const looksLikeAHost = (candidate) => HOSTNAME.test(candidate) || IPV6_LITERAL.test(candidate);
+
+/**
+ * The host a git remote points at, or null when it points at no host.
+ *
+ * A remote can carry a credential, so everything but the host is dropped. What
+ * is kept then has to be a host: a remote that is a path on this machine
+ * (file:///..., /srv/git/x, ../sibling) has none, and recording the scheme or a
+ * relative segment as one would be an invention in a document whose value is
+ * that it invents nothing. The URL parser answers the first form; the scp-like
+ * form git writes by default (git@host:path) is not a URL and is read here.
+ *
+ * @param {string} remoteUrl
+ * @returns {string|null} Complexity: O(length of the URL).
+ */
+export function remoteHostOf(remoteUrl) {
+  const text = redact(String(remoteUrl ?? '')).text.trim();
+  if (text === '') return null;
+
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(text)) {
+    let hostname;
+    try {
+      ({ hostname } = new URL(text));
+    } catch {
+      return null;
+    }
+    return looksLikeAHost(hostname) ? hostname : null;
+  }
+
+  // [user@]host:path, with no scheme. A single leading letter is a Windows
+  // drive, not a host, so two characters is the floor.
+  const scp = /^(?:[^@/\\]+@)?([^@/\\:]{2,}):/.exec(text);
+  return scp && looksLikeAHost(scp[1]) ? scp[1] : null;
+}
 /**
  * @returns {{available: boolean, commit: string|null, shortCommit: string|null,
  *   branch: string|null, dirty: boolean|null, tagsAtHead: string[],
@@ -65,11 +104,7 @@ export function inspectGit(root) {
 
   // A remote URL can carry a token. Keep only the host, which is all the pack needs.
   const remoteUrl = git(root, ['config', '--get', 'remote.origin.url']);
-  let remoteHost = null;
-  if (remoteUrl) {
-    const match = /^(?:[a-z]+:\/\/)?(?:[^@/]+@)?([^/:]+)/i.exec(redact(remoteUrl).text);
-    remoteHost = match ? match[1] : null;
-  }
+  const remoteHost = remoteUrl ? remoteHostOf(remoteUrl) : null;
 
   const trackedRaw = git(root, ['ls-files']);
   const trackedFileCount = trackedRaw === null ? null : (trackedRaw ? trackedRaw.split('\n').length : 0);
