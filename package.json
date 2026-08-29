@@ -27,7 +27,8 @@
     "test:integration": "node --test test/integration/*.test.mjs",
     "selfcheck": "node bin/probative.mjs inspect . --json",
     "fixtures": "node test/build-fixtures.mjs",
-    "docs": "node scripts/generate-coverage-doc.mjs"
+    "docs": "node scripts/generate-coverage-doc.mjs",
+    "check:upstream": "node scripts/check-upstream.mjs"
   },
   "keywords": [
     "cra",

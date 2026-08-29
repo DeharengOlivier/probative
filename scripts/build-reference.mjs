@@ -24,6 +24,8 @@ const referenceDirectory = join(root, 'reference');
 const SOURCE_URL = 'http://publications.europa.eu/resource/celex/32024R2847';
 const SOURCE_XHTML = join(referenceDirectory, 'regulation-2024-2847.source.xhtml');
 const SOURCE_TEXT = join(referenceDirectory, 'regulation-2024-2847.en.txt');
+const CORRECTED_TEXT = join(referenceDirectory, 'regulation-2024-2847.en.corrected.txt');
+const CORRIGENDA = join(referenceDirectory, 'corrigenda.json');
 const INDEX = join(referenceDirectory, 'loci.json');
 
 const ARTICLES = [3, 6, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
@@ -211,13 +213,51 @@ function buildIndex(lines) {
 
 const sha256 = (buffer) => createHash('sha256').update(buffer).digest('hex');
 
+/**
+ * Apply the corrigenda published after the Regulation itself.
+ *
+ * The text served by the Publications Office is the text as first published;
+ * the law in force is that text as corrected. A tool that claims to quote the
+ * official wording has to quote the corrected wording, and has to be able to
+ * show which corrections it applied and from which Official Journal.
+ *
+ * Each correction is matched verbatim and must occur exactly once. Anything
+ * else means the upstream text moved under us, and guessing which occurrence
+ * was meant is exactly the kind of silent drift this tool exists to prevent.
+ *
+ * @returns {{corrected: string, applied: string[]}}
+ * Complexity: O(corrigenda x length of the text).
+ */
+function applyCorrigenda(text, corrigenda) {
+  let corrected = text;
+  const applied = [];
+  for (const entry of corrigenda) {
+    const occurrences = corrected.split(entry.for).length - 1;
+    if (occurrences !== 1) {
+      throw new Error(
+        `${entry.celex}: expected exactly one occurrence of the superseded wording at "${entry.location}", found ${occurrences}. `
+        + 'Re-verify the corrigendum against the Official Journal before rebuilding.',
+      );
+    }
+    corrected = corrected.replace(entry.for, entry.read);
+    applied.push(entry.celex);
+  }
+  return { corrected, applied };
+}
+
 if (process.argv.includes('--fetch')) await fetchSource();
 
 const xhtml = readFileSync(SOURCE_XHTML, 'utf8');
 const text = flatten(xhtml);
 writeFileSync(SOURCE_TEXT, text, 'utf8');
 
-const loci = buildIndex(text.split('\n'));
+// The as-published text keeps its own file and digest so it stays comparable to
+// what the Publications Office serves; the index is built from the corrected one.
+const { corrigenda } = JSON.parse(readFileSync(CORRIGENDA, 'utf8'));
+const { corrected, applied } = applyCorrigenda(text, corrigenda);
+writeFileSync(CORRECTED_TEXT, corrected, 'utf8');
+
+const loci = buildIndex(corrected.split('\n'));
 const empty = Object.entries(loci).filter(([, entry]) => !entry.text || entry.text.trim().length < 10);
 if (empty.length > 0) throw new Error(`${empty.length} provisions came out empty: ${empty.map(([key]) => key).join(', ')}`);
 
@@ -229,11 +269,15 @@ writeFileSync(INDEX, `${JSON.stringify({
   retrievedFrom: SOURCE_URL,
   sourceFile: 'regulation-2024-2847.en.txt',
   sourceSha256: sha256(readFileSync(SOURCE_TEXT)),
+  correctedFile: 'regulation-2024-2847.en.corrected.txt',
+  correctedSha256: sha256(readFileSync(CORRECTED_TEXT)),
+  corrigendaApplied: applied,
   loci,
 }, null, 2)}\n`, 'utf8');
 
-const sums = ['regulation-2024-2847.en.txt', 'regulation-2024-2847.source.xhtml', 'loci.json']
+const sums = ['regulation-2024-2847.en.txt', 'regulation-2024-2847.en.corrected.txt',
+  'regulation-2024-2847.source.xhtml', 'corrigenda.json', 'loci.json']
   .map((file) => `${sha256(readFileSync(join(referenceDirectory, file)))}  ${file}`).join('\n');
 writeFileSync(join(referenceDirectory, 'SHA256SUMS'), `${sums}\n`, 'utf8');
 
-console.log(`indexed ${Object.keys(loci).length} provisions`);
+console.log(`indexed ${Object.keys(loci).length} provisions; applied ${applied.length} corrigenda: ${applied.join(', ')}`);

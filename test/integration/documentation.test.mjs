@@ -168,3 +168,50 @@ test('every Node version the CI exercises satisfies the engines floor', () => {
   assert.ok(versions.includes(floor) || versions.some((v) => v.startsWith(floorMajor)),
     `nothing in CI exercises the ${floorMajor}.x floor that engines promises`);
 });
+
+// --- Corrigenda -------------------------------------------------------------
+// The Official Journal text is corrected after publication. A tool whose whole
+// claim is that it quotes the official wording must quote the corrected wording,
+// and must be able to show which corrections it applied.
+
+test('every corrigendum affecting the English text is recorded with its verbatim correction', () => {
+  const corrigenda = JSON.parse(readFileSync(join(projectRoot, 'reference', 'corrigenda.json'), 'utf8'));
+  assert.ok(Array.isArray(corrigenda.corrigenda) && corrigenda.corrigenda.length >= 3);
+  const celexIds = corrigenda.corrigenda.map((c) => c.celex);
+  for (const expected of ['32024R2847R(01)', '32024R2847R(02)', '32024R2847R(04)']) {
+    assert.ok(celexIds.includes(expected), `${expected} corrects the English text and is not recorded`);
+  }
+  for (const entry of corrigenda.corrigenda) {
+    for (const field of ['celex', 'oj', 'date', 'eli', 'languages', 'location', 'for', 'read']) {
+      assert.ok(entry[field], `${entry.celex} has no ${field}`);
+    }
+    assert.notEqual(entry.for, entry.read, `${entry.celex} corrects nothing`);
+  }
+});
+
+test('the corrigenda are actually applied to the text the index is built from', () => {
+  const corrected = readFileSync(join(projectRoot, 'reference', 'regulation-2024-2847.en.corrected.txt'), 'utf8');
+  const { corrigenda } = JSON.parse(readFileSync(join(projectRoot, 'reference', 'corrigenda.json'), 'utf8'));
+  for (const entry of corrigenda) {
+    assert.ok(corrected.includes(entry.read), `${entry.celex}: the corrected wording is absent`);
+    assert.ok(!corrected.includes(entry.for), `${entry.celex}: the superseded wording is still present`);
+  }
+});
+
+test('the cited text carries the substantive correction of Article 64(10)', () => {
+  const reference = JSON.parse(readFileSync(join(projectRoot, 'reference', 'loci.json'), 'utf8'));
+  assert.match(reference.loci['Art.64.10'].text, /derogation from paragraphs 2 to 9/,
+    'Art.64(10) still quotes the wording replaced by corrigendum 32024R2847R(02)');
+  assert.doesNotMatch(reference.loci['Art.64.10'].text, /derogation from paragraphs 3 to 9/);
+});
+
+test('the index records the digest of the text as published and of the corrected text', () => {
+  const reference = JSON.parse(readFileSync(join(projectRoot, 'reference', 'loci.json'), 'utf8'));
+  const sums = readFileSync(join(projectRoot, 'reference', 'SHA256SUMS'), 'utf8');
+  assert.match(reference.sourceSha256, /^[0-9a-f]{64}$/);
+  assert.match(reference.correctedSha256, /^[0-9a-f]{64}$/);
+  assert.notEqual(reference.sourceSha256, reference.correctedSha256, 'corrections were applied, so the digests differ');
+  assert.ok(sums.includes(reference.sourceSha256), 'the as-published text is not in SHA256SUMS');
+  assert.ok(sums.includes(reference.correctedSha256), 'the corrected text is not in SHA256SUMS');
+  assert.ok(reference.corrigendaApplied.length >= 3);
+});

@@ -1,0 +1,58 @@
+{
+  "regulation": "Regulation (EU) 2024/2847 (Cyber Resilience Act)",
+  "celex": "32024R2847",
+  "note": "Corrections published in the Official Journal after the Regulation itself. Only those affecting the English text are listed and applied; corrigenda 32024R2847R(03) (FR, HU), R(05) (SK), R(06) (FR) and R(07) (DE) correct other language versions and leave the English wording untouched. The 'for' string is matched verbatim against the text as published and must occur exactly once.",
+  "notAffectingEnglish": [
+    {
+      "celex": "32024R2847R(03)",
+      "languages": "FR, HU"
+    },
+    {
+      "celex": "32024R2847R(05)",
+      "languages": "SK"
+    },
+    {
+      "celex": "32024R2847R(06)",
+      "languages": "FR"
+    },
+    {
+      "celex": "32024R2847R(07)",
+      "languages": "DE"
+    }
+  ],
+  "corrigenda": [
+    {
+      "celex": "32024R2847R(01)",
+      "oj": "OJ L, 2024/90780, 5.12.2024",
+      "date": "2024-12-05",
+      "eli": "http://data.europa.eu/eli/reg/2024/2847/corrigendum/2024-12-05/oj",
+      "languages": "EN",
+      "location": "Page 1, title",
+      "substantive": false,
+      "for": "(EU) No 168/2013 and (EU) No 2019/1020",
+      "read": "(EU) No 168/2013 and (EU) 2019/1020"
+    },
+    {
+      "celex": "32024R2847R(02)",
+      "oj": "OJ L, 2025/90555, 2.7.2025",
+      "date": "2025-07-02",
+      "eli": "http://data.europa.eu/eli/reg/2024/2847/corrigendum/2025-07-02/oj",
+      "languages": "all",
+      "location": "Page 65, Article 64(10), introductory wording",
+      "substantive": true,
+      "for": "By way of derogation from paragraphs 3 to 9, the administrative fines referred to in those paragraphs shall not apply to the following:",
+      "read": "By way of derogation from paragraphs 2 to 9, the administrative fines referred to in those paragraphs shall not apply to the following:"
+    },
+    {
+      "celex": "32024R2847R(04)",
+      "oj": "OJ L, 2025/90828, 17.10.2025",
+      "date": "2025-10-17",
+      "eli": "http://data.europa.eu/eli/reg/2024/2847/corrigendum/2025-10-17/oj",
+      "languages": "all",
+      "location": "Page 66, Article 67",
+      "substantive": false,
+      "for": "‘69.\n Regulation (EU) 2024/2847 of the European Parliament and of the Council (*2).",
+      "read": "‘72.\n Regulation (EU) 2024/2847 of the European Parliament and of the Council (*2)."
+    }
+  ]
+}

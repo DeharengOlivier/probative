@@ -5,8 +5,9 @@ on:
     branches: [main]
   pull_request:
   schedule:
-    # The ruleset cites a moving regulatory target. A weekly run surfaces a
-    # reference that no longer matches its recorded digest.
+    # The Regulation is corrected after publication. A weekly run asks the
+    # Official Journal whether a corrigendum appeared that this repository has
+    # not applied; rebuilding from the local copy could never see one.
     - cron: '0 6 * * 1'
 
 permissions:
@@ -45,6 +46,19 @@ jobs:
         run: |
           node scripts/generate-coverage-doc.mjs
           git diff --exit-code docs/coverage.md
+
+  upstream-currency:
+    # The only check here that can fail because the law moved rather than
+    # because the code did. Exit 2 means the sources were unreachable, which is
+    # not a clean bill of health, so it is reported as a failure too.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: The shipped Regulation is still the Regulation in force
+        run: node scripts/check-upstream.mjs
 
   dogfood:
     runs-on: ubuntu-latest
