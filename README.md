@@ -1,12 +1,17 @@
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
-  <img src="assets/logo.svg" alt="" width="56" height="56" align="left">
-</picture>
+<img src="assets/logo.svg" alt="Flag of Europe" width="96" height="64" align="left">
 
 # probative
 
 Turn a Node.js repository into a reproducible, source-linked **Cyber Resilience
 Act technical evidence pack**.
+
+> **probative is an independent open source project.** It is not affiliated
+> with, endorsed, sponsored or approved by the European Union, the European
+> Commission, or any EU institution, body, office or agency. The European
+> emblem is used here only to indicate the subject matter, European Union law,
+> under the conditions of OJ C 271, 8.9.2012, and is not registered or claimed
+> as a trade mark by this project. The emblem never appears on the evidence
+> packs the tool produces.
 
 *In law, evidence is probative when it tends to prove a fact. It is never the
 verdict.* That is what this tool produces, and where it stops.

@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="probative">
-  <title>probative</title>
-  <!-- Full mark: three rules inside the bracket, the cited one in amber. -->
-  <path d="M15 7 H8 V41 H15" fill="none" stroke="#7E9BEA" stroke-width="4.5" stroke-linecap="square"/>
-  <path d="M33 7 H40 V41 H33" fill="none" stroke="#7E9BEA" stroke-width="4.5" stroke-linecap="square"/>
-  <path d="M19 18 H29" fill="none" stroke="#5B6E9E" stroke-width="3.4" stroke-linecap="square"/>
-  <path d="M19 24 H29" fill="none" stroke="#F0A44A" stroke-width="3.4" stroke-linecap="square"/>
-  <path d="M19 30 H25" fill="none" stroke="#5B6E9E" stroke-width="3.4" stroke-linecap="square"/>
-</svg>

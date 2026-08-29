@@ -112,3 +112,21 @@ test('the executive summary heading matches the number of gaps it lists', () => 
     assert.equal(Number(heading[1]), rows.length, `${fixture} promises ${heading[1]} gaps and lists ${rows.length}`);
   }
 });
+
+// The emblem identifies the project's subject matter in the readme. It must
+// never reach a generated pack: a pack is what a manufacturer hands to a market
+// surveillance authority, and an emblem there reads as an official
+// certification of exactly what this tool refuses to assert.
+test('the European emblem never appears in a generated pack', () => {
+  for (const fixture of ['minimal-unprepared', 'partially-prepared', 'well-evidenced', 'hostile-repository']) {
+    const { files } = run(fixture);
+    for (const [path, content] of Object.entries(files)) {
+      const text = typeof content === 'string' ? content : JSON.stringify(content);
+      // The pack legitimately DENIES a CE marking, so wording about it is fine
+      // and is guarded separately. This test is about the emblem alone.
+      for (const forbidden of [/#FFCC00/i, /#003399/i, /flag of europe/i, /european emblem/i, /\u{1F1EA}\u{1F1FA}/u]) {
+        assert.ok(!forbidden.test(text), `${fixture} pack file ${path} carries ${forbidden}`);
+      }
+    }
+  }
+});
