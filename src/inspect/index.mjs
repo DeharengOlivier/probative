@@ -6,7 +6,7 @@ import { inspectDocs } from './docs.mjs';
 import { inspectCi } from './ci.mjs';
 import { resolveNow, toIso } from '../util/time.mjs';
 import { hashFile, hashManifest, hashValue } from '../util/hash.mjs';
-import { safeResolve, walkRepo } from '../util/fs.mjs';
+import { LIMITS, safeResolve, walkRepo } from '../util/fs.mjs';
 
 export const INVENTORY_SCHEMA_VERSION = '1.0.0';
 
@@ -40,6 +40,8 @@ export function inspectRepository(root, options = {}) {
     lockfile,
     docs,
     ci,
+    // What "the whole repository" was allowed to mean during this run.
+    walk: { maxEntries: LIMITS.maxWalkEntries, maxDepth: LIMITS.maxDepth, truncated: walk.truncated },
     notes,
   };
 

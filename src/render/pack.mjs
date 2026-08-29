@@ -252,6 +252,15 @@ function flatten(value, prefix = '') {
   return rows;
 }
 
+/** What the walk was allowed to cover, and whether it needed all of it. */
+function walkSentence(walk) {
+  if (!walk) return 'The repository was walked in full.';
+  const bounds = `at most ${walk.maxEntries} files and ${walk.maxDepth} levels of directory`;
+  return walk.truncated
+    ? `The repository walk is bounded to ${bounds}, and those bounds were reached: parts of the tree were not read, and the inventories say which are affected.`
+    : `The repository walk is bounded to ${bounds}. It stopped because it ran out of tree, not because it reached them.`;
+}
+
 function renderLimitations({ assessment, ruleset, inventory }) {
   return section(
     heading(1, 'Limitations'),
@@ -263,6 +272,7 @@ function renderLimitations({ assessment, ruleset, inventory }) {
     heading(2, 'How the evidence was obtained'),
     bullets([
       'The repository was read. No project script, test, build or install command was executed.',
+      walkSentence(inventory.walk),
       'No network request was made. The bill of materials comes from the lockfile, not from a registry.',
       'Continuous integration workflows were scanned as text, not parsed as YAML. Every signal derived from them is a mention, not proven behaviour.',
       'Documents were matched by name and by keyword. A practice documented under a heading this tool does not recognise reads as absent.',

@@ -75,3 +75,36 @@ test('what the walk did not reach changes no control status', () => {
     scratch.cleanup();
   }
 });
+
+test('the pack states the bounds the walk was collected under', () => {
+  // A reader who is told an inventory is complete deserves to know what
+  // "complete" was allowed to mean.
+  const scratch = copyFixture('well-evidenced');
+  try {
+    const inventory = inspectRepository(scratch.path, { nowOverride: FIXED_NOW });
+    assert.deepEqual(inventory.walk, {
+      maxEntries: LIMITS.maxWalkEntries,
+      maxDepth: LIMITS.maxDepth,
+      truncated: false,
+    });
+    const { files } = runPipeline(scratch.path, { nowOverride: FIXED_NOW });
+    const limitations = files['limitations.md'];
+    assert.match(limitations, new RegExp(String(LIMITS.maxWalkEntries)));
+    assert.match(limitations, new RegExp(String(LIMITS.maxDepth)));
+  } finally {
+    scratch.cleanup();
+  }
+});
+
+test('and says plainly when they were reached', () => {
+  const scratch = copyFixture('well-evidenced');
+  try {
+    buryATree(scratch.path);
+    const inventory = inspectRepository(scratch.path, { nowOverride: FIXED_NOW });
+    assert.equal(inventory.walk.truncated, true);
+    const { files } = runPipeline(scratch.path, { nowOverride: FIXED_NOW });
+    assert.match(files['limitations.md'], /reached|stopped/i);
+  } finally {
+    scratch.cleanup();
+  }
+});
