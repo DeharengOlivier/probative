@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { projectRoot } from '../helpers.mjs';
 
@@ -131,11 +131,18 @@ test('the skill interview asks both Article 14 tracks with their own clock', () 
 });
 
 test('GitHub Actions are pinned to immutable commit SHAs', () => {
-  const workflow = readFileSync(join(projectRoot, '.github', 'workflows', 'ci.yml'), 'utf8');
-  const uses = [...workflow.matchAll(/uses:\s*(\S+)/g)].map((m) => m[1]);
-  assert.ok(uses.length > 0, 'no actions found, the pattern must have changed');
-  for (const ref of uses) {
-    assert.match(ref, /@[0-9a-f]{40}$/, `${ref} is pinned to a mutable tag, not a commit`);
+  // Every workflow, not only ci.yml: a mutable tag in the workflow that
+  // publishes to npm is worth more to an attacker than one in the workflow
+  // that runs the tests.
+  const directory = join(projectRoot, '.github', 'workflows');
+  const workflows = readdirSync(directory).filter((name) => /\.ya?ml$/.test(name));
+  assert.ok(workflows.length > 1, 'expected several workflows, the layout must have changed');
+  for (const name of workflows) {
+    const uses = [...readFileSync(join(directory, name), 'utf8').matchAll(/uses:\s*(\S+)/g)].map((m) => m[1]);
+    assert.ok(uses.length > 0, `no actions found in ${name}, the pattern must have changed`);
+    for (const ref of uses) {
+      assert.match(ref, /@[0-9a-f]{40}$/, `${name}: ${ref} is pinned to a mutable tag, not a commit`);
+    }
   }
 });
 

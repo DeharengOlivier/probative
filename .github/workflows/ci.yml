@@ -60,6 +60,18 @@ jobs:
       - name: The shipped Regulation is still the Regulation in force
         run: node scripts/check-upstream.mjs
 
+  coverage:
+    # A floor, not a target. It exists so that a change which quietly stops
+    # exercising a guard fails here rather than in somebody's evidence pack.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '22'
+      - name: Tests, with a coverage floor
+        run: npm run test:coverage
+
   dogfood:
     runs-on: ubuntu-latest
     steps:
