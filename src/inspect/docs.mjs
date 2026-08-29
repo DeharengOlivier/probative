@@ -1,4 +1,5 @@
 import { readRepoFile, repoFileExists, walkRepo, partitionByEvidenceRelevance } from '../util/fs.mjs';
+import { WALK_TRUNCATED_NOTE } from './walk-note.mjs';
 import { redact } from '../util/redact.mjs';
 
 const SECURITY_POLICY_PATHS = ['SECURITY.md', '.github/SECURITY.md', 'docs/SECURITY.md', 'SECURITY.rst', 'SECURITY.txt'];
@@ -97,10 +98,10 @@ function analyseSecurityPolicy(text) {
 /**
  * @returns {object} factual document inventory; nothing here is a compliance judgement
  */
-export function inspectDocs(root) {
+export function inspectDocs(root, { walk } = {}) {
   const notes = [];
-  const { files, truncated } = walkRepo(root);
-  if (truncated) notes.push('repository walk hit its entry ceiling; the document inventory may be incomplete');
+  const { files, truncated } = walk ?? walkRepo(root);
+  if (truncated) notes.push(WALK_TRUNCATED_NOTE('document'));
 
   const securityPolicyPath = firstExisting(root, SECURITY_POLICY_PATHS);
   const securityPolicyText = securityPolicyPath ? readRepoFile(root, securityPolicyPath) : null;

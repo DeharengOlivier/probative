@@ -1,4 +1,5 @@
 import { readRepoFile, repoFileExists, walkRepo } from '../util/fs.mjs';
+import { WALK_TRUNCATED_NOTE } from './walk-note.mjs';
 
 /**
  * Workflow files are scanned textually, not parsed as YAML. That is a deliberate
@@ -37,9 +38,14 @@ function mergeSignals(list) {
 /**
  * @returns {object} continuous-integration inventory with per-workflow signals
  */
-export function inspectCi(root) {
+export function inspectCi(root, { walk } = {}) {
   const notes = [];
-  const { files } = walkRepo(root);
+  // A walk that stopped early has to be said out loud here. Otherwise a
+  // repository whose tree ends the walk before .github is reached is reported
+  // as having no continuous integration at all, which is a statement the tool
+  // never observed.
+  const { files, truncated } = walk ?? walkRepo(root);
+  if (truncated) notes.push(WALK_TRUNCATED_NOTE('CI'));
   const workflowPaths = files.filter((f) => /^\.github\/workflows\/[^/]+\.ya?ml$/i.test(f)).sort();
 
   const workflows = [];

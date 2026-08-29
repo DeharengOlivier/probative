@@ -6,7 +6,7 @@ import { inspectDocs } from './docs.mjs';
 import { inspectCi } from './ci.mjs';
 import { resolveNow, toIso } from '../util/time.mjs';
 import { hashFile, hashManifest, hashValue } from '../util/hash.mjs';
-import { safeResolve } from '../util/fs.mjs';
+import { safeResolve, walkRepo } from '../util/fs.mjs';
 
 export const INVENTORY_SCHEMA_VERSION = '1.0.0';
 
@@ -21,8 +21,11 @@ export function inspectRepository(root, options = {}) {
   const git = inspectGit(absoluteRoot);
   const npmPackage = inspectPackage(absoluteRoot);
   const lockfile = inspectLockfile(absoluteRoot, npmPackage);
-  const docs = inspectDocs(absoluteRoot);
-  const ci = inspectCi(absoluteRoot);
+  // One walk, read twice. Walking the tree once per inspector was not only
+  // twice the work, it was two chances to disagree about where it stopped.
+  const walk = walkRepo(absoluteRoot);
+  const docs = inspectDocs(absoluteRoot, { walk });
+  const ci = inspectCi(absoluteRoot, { walk });
 
   const notes = [...git.notes, ...npmPackage.notes, ...lockfile.notes, ...docs.notes, ...ci.notes];
 
