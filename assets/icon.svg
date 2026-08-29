@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="probative">
+  <title>probative</title>
+  <!-- A citation bracket enclosing one cited line: the tool's own mechanism, a
+       locus. Deliberately not a tick, a shield, a seal or a badge, because the
+       tool states no verdict. Deliberately not the European emblem: see
+       assets/README.md. -->
+  <path d="M17 6 H9 V42 H17" fill="none" stroke="#003399" stroke-width="5.5" stroke-linecap="square"/>
+  <path d="M31 6 H39 V42 H31" fill="none" stroke="#003399" stroke-width="5.5" stroke-linecap="square"/>
+  <path d="M20 24 H28" fill="none" stroke="#B45309" stroke-width="5.5" stroke-linecap="square"/>
+</svg>

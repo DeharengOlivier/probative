@@ -1,3 +1,8 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
+  <img src="assets/logo.svg" alt="" width="56" height="56" align="left">
+</picture>
+
 # probative
 
 Turn a Node.js repository into a reproducible, source-linked **Cyber Resilience
