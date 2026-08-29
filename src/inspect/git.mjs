@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { realpathSync } from 'node:fs';
+import { sameDirectory } from '../util/fs.mjs';
 import { basename } from 'node:path';
 import { redact } from '../util/redact.mjs';
 
@@ -49,7 +50,7 @@ export function inspectGit(root) {
   const repositoryRoot = git(root, ['rev-parse', '--show-toplevel']);
   const analysedPathIsRepositoryRoot = repositoryRoot === null
     ? null
-    : realpathSync(repositoryRoot) === realpathSync(root);
+    : sameDirectory(repositoryRoot, root);
   if (analysedPathIsRepositoryRoot === false) {
     notes.push(`the analysed path is a subdirectory of the git repository rooted at ${basename(repositoryRoot)}; the commit and working tree state describe that whole repository, not this directory alone`);
   }

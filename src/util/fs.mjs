@@ -1,5 +1,5 @@
-import { readFileSync, readdirSync, realpathSync, statSync, existsSync, mkdirSync, rmSync, renameSync, writeFileSync } from 'node:fs';
-import { join, relative, resolve, sep } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, readdirSync, readlinkSync, realpathSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 
 /**
  * Paths never read, whatever the repository asks for. Two reasons: they hold
@@ -102,6 +102,90 @@ export function isDeniedFile(name) {
  * including through a symlink. Returns null rather than throwing so callers can
  * record the refusal as evidence.
  */
+/**
+ * Canonical form of a path whose tail does not exist.
+ *
+ * realpathSync refuses a path that is not there, but the part of it that IS
+ * there still has a canonical form, and on macOS that matters: /var is a link
+ * to /private/var, so an uncanonicalised path never shares a prefix with a
+ * canonicalised root and every comparison says 'outside'.
+ *
+ * @param {string} path absolute
+ * @returns {string}
+ * Complexity: O(depth of the path).
+ */
+function canonicaliseMissing(path) {
+  const tail = [];
+  let current = path;
+  for (;;) {
+    try {
+      return tail.length === 0 ? realpathSync(current) : join(realpathSync(current), ...tail);
+    } catch {
+      const parent = dirname(current);
+      if (parent === current) return path; // nothing along the way exists
+      tail.unshift(basename(current));
+      current = parent;
+    }
+  }
+}
+
+/**
+ * Best judgement of where a path that cannot be resolved would lead.
+ *
+ * @param {string} candidate an absolute, lexically resolved path
+ * @returns {string} the canonical target of a dangling symlink, or the path itself
+ * Complexity: O(depth of the path).
+ */
+function resolveUnresolvable(candidate) {
+  let target;
+  try {
+    target = readlinkSync(candidate); // throws EINVAL when it is not a symlink
+  } catch {
+    // Not a link, merely missing. The lexical form is enough to reject
+    // '../etc/passwd' before anything touches the filesystem.
+    return candidate;
+  }
+  return canonicaliseMissing(resolve(dirname(candidate), target));
+}
+
+/**
+ * Reduce a path to the form two spellings of the same directory share.
+ *
+ * Windows spells one directory several ways: a short 8.3 form
+ * (C:\\Users\\RUNNER~1\\...) and a long one, forward or backward slashes, and any
+ * case. git reports the long form with forward slashes while Node's tmpdir()
+ * hands back the short one, so a plain === calls one directory two.
+ *
+ * @param {string} path
+ * @param {string} [platform] injectable so the Windows rules can be tested anywhere
+ * @returns {string}
+ * Complexity: O(length of the path).
+ */
+export function normalisePathForComparison(path, platform = process.platform) {
+  if (platform !== 'win32') return path;
+  // A literal backslash, not sep: the platform is a parameter so that the
+  // Windows rules can be exercised from any machine, and sep would be the
+  // host's separator rather than the one being reasoned about.
+  return path.replace(/\//g, '\\').replace(/\\+$/, '').toLowerCase();
+}
+
+/**
+ * Whether two paths denote the same directory, across spellings.
+ * realpathSync.native asks the operating system, which is what expands a
+ * Windows 8.3 short name; the plain realpathSync does not.
+ *
+ * @returns {boolean} Complexity: O(depth of the paths).
+ */
+export function sameDirectory(a, b) {
+  const canonical = (path) => {
+    for (const resolver of [realpathSync.native, realpathSync]) {
+      try { return normalisePathForComparison(resolver(path)); } catch { /* try the next */ }
+    }
+    return normalisePathForComparison(resolve(path));
+  };
+  return canonical(a) === canonical(b);
+}
+
 export function safeResolve(root, relativePath) {
   const rootReal = realpathSync(root);
   const candidate = resolve(rootReal, relativePath);
@@ -109,9 +193,11 @@ export function safeResolve(root, relativePath) {
   try {
     real = realpathSync(candidate);
   } catch {
-    // The path does not exist. Judge the lexical form, which is enough to
-    // reject '../etc/passwd' before anything touches the filesystem.
-    real = candidate;
+    // The path cannot be resolved. If it is a symlink, it is dangling, and the
+    // link still declares where it points: judge that declaration. Falling back
+    // to the link's own in-root location would call an escape contained, which
+    // is how a repository can name a file outside the analysed tree.
+    real = resolveUnresolvable(candidate);
   }
   if (real !== rootReal && !real.startsWith(rootReal + sep)) return null;
   return real;

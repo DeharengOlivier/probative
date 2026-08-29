@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -17,9 +18,20 @@ test('docs/coverage.md is regenerated from the ruleset and has not drifted', () 
 });
 
 test('the shipped regulation text matches the digests recorded beside it', () => {
-  const sums = readFileSync(join(projectRoot, 'reference', 'SHA256SUMS'), 'utf8');
-  execFileSync('shasum', ['-a', '256', '-c', 'SHA256SUMS'], { cwd: join(projectRoot, 'reference'), stdio: 'ignore' });
-  for (const file of ['regulation-2024-2847.en.txt', 'loci.json']) {
+  // Verified in Node rather than by shelling out to shasum, which does not
+  // exist on Windows: the check that the bytes are the recorded bytes must not
+  // depend on which operating system is asking.
+  const referenceDirectory = join(projectRoot, 'reference');
+  const sums = readFileSync(join(referenceDirectory, 'SHA256SUMS'), 'utf8');
+  const lines = sums.trim().split('\n');
+  assert.ok(lines.length >= 4, 'SHA256SUMS covers fewer files than expected');
+  for (const line of lines) {
+    const [digest, file] = line.split(/\s+/);
+    assert.match(digest, /^[0-9a-f]{64}$/, `malformed digest line: ${line}`);
+    const actual = createHash('sha256').update(readFileSync(join(referenceDirectory, file))).digest('hex');
+    assert.equal(actual, digest, `${file} does not match its recorded digest`);
+  }
+  for (const file of ['regulation-2024-2847.en.txt', 'regulation-2024-2847.en.corrected.txt', 'corrigenda.json', 'loci.json']) {
     assert.ok(sums.includes(file), `${file} is not covered by SHA256SUMS`);
   }
 });
