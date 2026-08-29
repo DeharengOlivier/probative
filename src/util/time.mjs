@@ -33,13 +33,21 @@ export function parseSupportDate(value) {
   if (typeof value !== 'string') return null;
   const monthOnly = /^(\d{4})-(\d{2})$/.exec(value.trim());
   if (monthOnly) {
-    const date = new Date(Date.UTC(Number(monthOnly[1]), Number(monthOnly[2]) - 1, 1));
-    return Number.isNaN(date.getTime()) ? null : { date, granularity: 'month' };
+    const year = Number(monthOnly[1]);
+    const month = Number(monthOnly[2]) - 1;
+    const date = new Date(Date.UTC(year, month, 1));
+    if (Number.isNaN(date.getTime())) return null;
+    // '2031-01' denotes the whole of January 2031. Day 0 of the next month is
+    // the last day of this one, and handles both leap years and December.
+    const latest = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
+    return { date, latest, granularity: 'month' };
   }
   const full = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
   if (full) {
     const date = new Date(`${value.trim()}T00:00:00Z`);
-    return Number.isNaN(date.getTime()) ? null : { date, granularity: 'day' };
+    if (Number.isNaN(date.getTime())) return null;
+    const latest = new Date(date.getTime() + 86399999);
+    return { date, latest, granularity: 'day' };
   }
   return null;
 }

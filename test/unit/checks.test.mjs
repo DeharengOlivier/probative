@@ -213,3 +213,39 @@ test('Article 14: the rule cites both tracks', () => {
     assert.ok(control.loci.includes(locus), `CRA-NODE-080 does not cite ${locus}`);
   }
 });
+
+// --- The five-year floor must not be missed by a rounding convention --------
+
+test('a support period ending in the month that completes five years is not a gap', () => {
+  const context = { ...baseContext, profile: {
+    regulatoryPosition: { placingOnMarketDate: '2026-01-15' },
+    supportPeriod: { endDate: '2031-01' },
+  } };
+  const outcome = CHECKS.supportPeriodDuration(context);
+  assert.equal(outcome.status, STATUS.DECLARED,
+    "January 2031 runs to the 31st, so the period clears five years");
+});
+
+test('a support period genuinely short of five years is still reported', () => {
+  const outcome = CHECKS.supportPeriodDuration({ ...baseContext, profile: {
+    regulatoryPosition: { placingOnMarketDate: '2026-01-15' },
+    supportPeriod: { endDate: '2030-12' },
+  } });
+  assert.notEqual(outcome.status, STATUS.DECLARED, 'the favourable reading must not hide a real shortfall');
+});
+
+test('a support period ending this month has not expired yet', () => {
+  const outcome = CHECKS.supportPeriodEndDate({
+    ...baseContext, now: new Date('2026-08-29T12:00:00Z'),
+    profile: { supportPeriod: { endDate: '2026-08', publishedAt: 'README' } },
+  });
+  assert.notEqual(outcome.status, STATUS.STALE, 'August 2026 runs to the 31st');
+});
+
+test('a support period that ended last month is stale', () => {
+  const outcome = CHECKS.supportPeriodEndDate({
+    ...baseContext, now: new Date('2026-08-29T12:00:00Z'),
+    profile: { supportPeriod: { endDate: '2026-07', publishedAt: 'README' } },
+  });
+  assert.equal(outcome.status, STATUS.STALE);
+});

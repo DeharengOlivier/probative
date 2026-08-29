@@ -37,3 +37,20 @@ test('honours SOURCE_DATE_EPOCH and an explicit override', () => {
 test('rejects an unparseable override rather than falling back silently', () => {
   assert.throws(() => resolveNow({ nowOverride: 'yesterday' }), /invalid --now/);
 });
+
+// Article 13(19) allows a support period end stated as a month and a year, so
+// '2031-01' denotes the whole of January 2031. Reading it as the 1st understates
+// the period by up to a month and raises a false gap against the five-year floor.
+test('a month-granularity date also carries the last instant it denotes', () => {
+  assert.equal(parseSupportDate('2031-01').latest.toISOString(), '2031-01-31T23:59:59.999Z');
+  assert.equal(parseSupportDate('2031-02').latest.toISOString(), '2031-02-28T23:59:59.999Z');
+  assert.equal(parseSupportDate('2032-02').latest.toISOString(), '2032-02-29T23:59:59.999Z', 'leap year');
+  assert.equal(parseSupportDate('2031-12').latest.toISOString(), '2031-12-31T23:59:59.999Z', 'december rolls the year');
+});
+
+test('a day-granularity date denotes that day and nothing more', () => {
+  const parsed = parseSupportDate('2031-01-15');
+  assert.equal(parsed.granularity, 'day');
+  assert.equal(parsed.latest.toISOString(), '2031-01-15T23:59:59.999Z');
+  assert.equal(parsed.date.toISOString(), '2031-01-15T00:00:00.000Z');
+});

@@ -294,7 +294,9 @@ export const CHECKS = {
       return result(STATUS.ERROR, `The declared end date '${raw}' is not a YYYY-MM or YYYY-MM-DD value, so the required month-and-year granularity cannot be confirmed.`, findings);
     }
     findings.push(finding('granularity', parsed.granularity));
-    if (parsed.date.getTime() < now.getTime()) {
+    // A month-granularity end date runs to the end of that month, so the period
+    // is not over until its last instant has passed.
+    if (parsed.latest.getTime() < now.getTime()) {
       return result(STATUS.STALE, `The declared support period ended on ${raw}. Vulnerability handling obligations under Article 13(8) run for the support period.`, findings);
     }
     if (!publishedAt) {
@@ -319,8 +321,13 @@ export const CHECKS = {
     const end = parseSupportDate(endRaw);
     const start = parseSupportDate(startRaw);
     if (!end || !start) return result(STATUS.ERROR, 'One of the two dates could not be parsed.', findings);
-    const months = monthsBetween(start.date, end.date);
-    findings.push(finding('declared support period', `${months} month(s)`));
+    // Read each bound as the widest span it legitimately denotes: a period is
+    // only reported as short of the floor when even that reading falls short.
+    const months = monthsBetween(start.date, end.latest);
+    findings.push(finding('declared support period', `${months} month(s)`,
+      end.granularity === 'month'
+        ? `read as running to ${end.latest.toISOString().slice(0, 10)}, the last day of the declared month`
+        : null));
     if (months >= SUPPORT_PERIOD_FLOOR_MONTHS) {
       return result(STATUS.DECLARED, `The declared support period is ${months} months, at or above the five-year floor.`, findings);
     }
